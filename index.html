@@ -1,1 +1,137 @@
-<h1>Hello World</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bunny GPT</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        #app {
+            text-align: center;
+            padding: 24px;
+        }
+
+        #form_query {
+            display: grid;
+            grid-template-columns: 1fr 75px;
+            gap: 16px;
+            width: 100%;
+            max-width: 600px;
+            margin: 48px auto 0;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #1996ff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1682dc;
+        }
+
+        #result {
+            margin: 20px auto 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            max-width: 600px;
+            text-align: left;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <h1>Bunny GPT</h1>
+    <form id="form_query">
+        <label>
+            <input name="content" placeholder="" value=""/>
+        </label>
+        <button name="btn" type="submit">Send</button>
+    </form>
+    <div id="result"></div>
+</div>
+<script>
+    (function () {
+        const form = document.getElementById('form_query');
+        const areaResult = document.getElementById('result');
+        form.addEventListener('submit', (ev) => {
+            ev.preventDefault();
+            const el = form.elements;
+            const btn = el.btn;
+            btn.disabled = true;
+            let tm = 0;
+            const content = el.content.value || '';
+            if (!content) return;
+            areaResult.innerHTML = '';
+            const id = setInterval(() => {
+                btn.innerText = '....'.substring(3 - (++tm) % 3);
+            }, 300)
+            requestLLM('./v1/chat/completions', {
+                messages: [{role: "user", content}],
+                stream: true,
+            }, (m) => {
+                areaResult.innerText += (m?.choices?.[0]?.delta?.content || '')
+            }, () => {
+                btn.disabled = false;
+                clearInterval(id);
+                btn.innerText = 'Send';
+            });
+        });
+        const NOOP = () => undefined;
+
+        function requestLLM(url, body, callback = NOOP, onFinish = NOOP) {
+            const xhr = new XMLHttpRequest();
+            let last = 0;
+            const processResponse = (res) => {
+                const lines = res.split(/\r|\n|\r\n/);
+                let txt = '';
+                lines.forEach((line) => {
+                    if (line.startsWith('data:')) {
+                        txt += line.substring(6).trim();
+                    } else if (line.trim() === '') {
+                        if (txt !== '') {
+                            if (txt !== '[DONE]') {
+                                try {
+                                    callback(JSON.parse(txt));
+                                } catch (e) {
+
+                                }
+                            }
+                            txt = '';
+                        }
+                    }
+                });
+            };
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onprogress = function () {
+                const response = xhr.responseText.substring(last);
+                last = xhr.responseText.length;
+                processResponse(response);
+            };
+            xhr.onload = () => onFinish();
+            xhr.responseType = 'text';
+            xhr.send(JSON.stringify(body));
+        }
+    })();
+</script>
+</body>
+</html>

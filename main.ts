@@ -179,7 +179,12 @@ Deno.serve(async (req: Request) => {
             },
         });
     } else {
-        return new Response("API RUNNING");
+        const data = await Deno.readFile("./index.html");
+        return new Response(new TextDecoder().decode(data), {
+            headers: new Headers({
+                "Content-Type": "text/html;charset=utf-8"
+            })
+        });
     }
 });
 

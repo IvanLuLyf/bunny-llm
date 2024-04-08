@@ -180,10 +180,12 @@ Deno.serve(async (req: Request) => {
         });
         return new Response(body, {
             headers: isStream ? {
+                "Access-Control-Allow-Origin": "*",
                 "Content-Type": "text/event-stream;charset=UTF-8",
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
             } : {
+                "Access-Control-Allow-Origin": "*",
                 "Content-Type": "application/json;charset=UTF-8",
             },
         });

@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "./api/index.ts";
 
 Deno.serve(async (req: Request) => {
     const url = new URL(req.url);

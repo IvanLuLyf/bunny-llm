@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "api/**/*.[jt]s": {
+      "runtime": "vercel-deno@3.1.0"
+    }
+  },
+  "routes": [
+    {
+      "src": "/v1/(.*)",
+      "dest": "/api/index.ts"
+    }
+  ],
+  "github": {
+    "silent": true
+  }
+}

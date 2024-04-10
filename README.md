@@ -1,5 +1,5 @@
 # bunny-gpt
-Deno GPT API Service
+a Deno ChatGPT 3.5 API Service
 
 ## Usage
 
@@ -14,7 +14,7 @@ client = OpenAI(
 )
 
 res = client.chat.completions.create(
-    model='',
+    model='gpt-3.5-turbo',
     messages=[
         {'role': 'user', 'content': 'Who are you?'}
     ],

@@ -2,7 +2,7 @@ import api from "./api/index.ts";
 
 Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
-    if (url.pathname === '/v1/chat/completions') {
+    if (url.pathname === '/v1/chat/completions' || url.pathname === '/token') {
         return await api(req);
     } else {
         const data = await Deno.readFile("./index.html");

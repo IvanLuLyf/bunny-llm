@@ -38,21 +38,48 @@ function generateUUID(): string {
 
 
 export default async (req: Request) => {
+    if (req.method === "OPTIONS") {
+        return new Response(null, {
+            headers: new Headers({
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            })
+        });
+    }
     const url = new URL(req.url);
-    if (url.pathname === '/v1/chat/completions') {
-        if (req.method === "OPTIONS") {
-            return new Response(null, {
-                headers: new Headers({
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type",
-                })
-            });
-        }
+    if (url.pathname === "/token") {
         const oaiDeviceId = generateUUID();
         const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '', {"oai-device-id": oaiDeviceId})
         const auth = await authRes.json();
         const token = auth.token;
+        return new Response(JSON.stringify({
+            token: encodeURIComponent(JSON.stringify({id: oaiDeviceId, token}))
+        }), {
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Content-Type": "application/json;charset=UTF-8",
+            },
+        });
+    } else if (url.pathname === '/v1/chat/completions') {
+        let oaiDeviceId = '', token = '';
+        if (req.headers.has("Authorization")) {
+            const tmp = req.headers.get("Authorization");
+            const authToken = tmp.startsWith("Bearer ") ? tmp.substring(7) : tmp;
+            try {
+                const t = JSON.parse(decodeURIComponent(authToken));
+                oaiDeviceId = t.id;
+                token = t.token;
+            } catch (e) {
+
+            }
+        }
+        if (!oaiDeviceId || !token) {
+            oaiDeviceId = generateUUID();
+            const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '', {"oai-device-id": oaiDeviceId})
+            const auth = await authRes.json();
+            token = auth.token;
+        }
         const reqBody = await req.json();
         const messages = reqBody.messages;
         const isStream = reqBody.stream;

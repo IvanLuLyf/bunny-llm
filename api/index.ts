@@ -37,7 +37,7 @@ function generateUUID(): string {
 }
 
 
-Deno.serve(async (req: Request) => {
+export default async (req: Request) => {
     const url = new URL(req.url);
     if (url.pathname === '/v1/chat/completions') {
         if (req.method === "OPTIONS") {
@@ -198,4 +198,4 @@ Deno.serve(async (req: Request) => {
             })
         });
     }
-});
+};

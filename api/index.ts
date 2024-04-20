@@ -1,5 +1,9 @@
+import {Sha3_512} from "https://deno.land/std@0.119.0/hash/sha3.ts";
+import {encode} from "https://deno.land/std@0.136.0/encoding/base64.ts";
+
 const BASE_URL = "https://chat.openai.com";
 const API_URL = `${BASE_URL}/backend-api/conversation`;
+const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36";
 
 async function fetchOpenAI(url: string, body = '', header = {}) {
     return fetch(url, {
@@ -20,7 +24,7 @@ async function fetchOpenAI(url: string, body = '', header = {}) {
             "sec-fetch-dest": "empty",
             "sec-fetch-mode": "cors",
             "sec-fetch-site": "same-origin",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+            "user-agent": USER_AGENT,
             ...header,
         },
         body,
@@ -34,6 +38,44 @@ function generateUUID(): string {
     randomBytes[8] = (randomBytes[8] & 0x3f) | 0x80;
     const hex = [...randomBytes].map(b => b.toString(16).padStart(2, '0')).join('');
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+const PROOF_TOKEN_PREFIX = "gAAAAABwQ8Lk5FbGpA2NcR9dShT6gYjU7VxZ4D";
+
+function getProofConfig() {
+    const cores = [8, 12, 16, 24];
+    const core = Math.floor(Math.random() * cores.length);
+    const screens = [3000, 4000, 6000];
+    const screen = Math.floor(Math.random() * screens.length);
+    return [
+        `${cores[core]}${screens[screen]}`,
+        new Date().toString(),
+        4294705152,
+        Math.floor(Math.random() * 100000),
+        USER_AGENT,
+    ];
+}
+
+function calcProofToken(seed, difficulty) {
+    let proofToken: string;
+    for (let i = 0; i < 100000; i++) {
+        const config = getProofConfig();
+        config[3] = i;
+        const jsonStr = JSON.stringify(config);
+        const base = encode(new TextEncoder().encode(jsonStr));
+        const hashInstance = new Sha3_512();
+        const hash = hashInstance.update(seed + base).toString();
+        if (hash.startsWith(difficulty)) {
+            proofToken = `gAAAAAB${base}`;
+            break;
+        }
+    }
+
+    if (!proofToken) {
+        proofToken = `${PROOF_TOKEN_PREFIX}${encode(new TextEncoder().encode(seed))}`;
+    }
+
+    return proofToken;
 }
 
 
@@ -53,8 +95,10 @@ export default async (req: Request) => {
         const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '', {"oai-device-id": oaiDeviceId})
         const auth = await authRes.json();
         const token = auth.token;
+        const seed = auth?.proofofwork?.seed;
+        const difficulty = auth?.proofofwork?.difficulty;
         return new Response(JSON.stringify({
-            token: encodeURIComponent(JSON.stringify({id: oaiDeviceId, token}))
+            token: encodeURIComponent(JSON.stringify({id: oaiDeviceId, token, seed, difficulty}))
         }), {
             headers: {
                 "Access-Control-Allow-Origin": "*",
@@ -62,7 +106,7 @@ export default async (req: Request) => {
             },
         });
     } else if (url.pathname === '/v1/chat/completions') {
-        let oaiDeviceId = '', token = '';
+        let oaiDeviceId = '', token = '', seed, difficulty;
         if (req.headers.has("Authorization")) {
             const tmp = req.headers.get("Authorization");
             const authToken = tmp.startsWith("Bearer ") ? tmp.substring(7) : tmp;
@@ -70,6 +114,8 @@ export default async (req: Request) => {
                 const t = JSON.parse(decodeURIComponent(authToken));
                 oaiDeviceId = t.id;
                 token = t.token;
+                seed = t?.seed;
+                difficulty = t?.difficulty;
             } catch (e) {
 
             }
@@ -79,6 +125,8 @@ export default async (req: Request) => {
             const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '', {"oai-device-id": oaiDeviceId})
             const auth = await authRes.json();
             token = auth.token;
+            seed = auth?.proofofwork?.seed;
+            difficulty = auth?.proofofwork?.difficulty;
         }
         const reqBody = await req.json();
         const messages = reqBody.messages;
@@ -101,6 +149,7 @@ export default async (req: Request) => {
                 }), {
                     "oai-device-id": oaiDeviceId,
                     "openai-sentinel-chat-requirements-token": token,
+                    "openai-sentinel-proof-token": calcProofToken(seed, difficulty),
                 }).then((res) => {
                     const reader = res.body.getReader();
                     const decoder = new TextDecoder();

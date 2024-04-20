@@ -74,7 +74,7 @@ function calcProofToken(seed, difficulty) {
     if (!proofToken) {
         proofToken = `${PROOF_TOKEN_PREFIX}${encode(new TextEncoder().encode(seed))}`;
     }
-
+    console.log("proofToken", proofToken);
     return proofToken;
 }
 

@@ -73,7 +73,7 @@ function calcProofToken(seed, difficulty) {
     }
 
     if (!proofToken) {
-        proofToken = `${PROOF_TOKEN_PREFIX}${encode(new TextEncoder().encode(seed))}`;
+        proofToken = `${PROOF_TOKEN_PREFIX}${Buffer.from(seed, 'utf-8').toString('base64')}`;
     }
     return proofToken;
 }

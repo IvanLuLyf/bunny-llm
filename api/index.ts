@@ -51,21 +51,22 @@ function getProofConfig() {
         `${cores[core]}${screens[screen]}`,
         new Date().toString(),
         4294705152,
-        Math.floor(Math.random() * 100000),
+        0,
         USER_AGENT,
     ];
 }
 
 function calcProofToken(seed, difficulty) {
     let proofToken: string;
+    const len = Math.floor(difficulty.length / 2);
     for (let i = 0; i < 100000; i++) {
         const config = getProofConfig();
         config[3] = i;
         const jsonStr = JSON.stringify(config);
         const base = encode(new TextEncoder().encode(jsonStr));
         const hashInstance = new Sha3_512();
-        const hash = hashInstance.update(seed + base).toString();
-        if (hash.startsWith(difficulty)) {
+        const hash = hashInstance.update(seed + base).digest('hex');
+        if (hash.slice(0, len) <= difficulty) {
             proofToken = `gAAAAAB${base}`;
             break;
         }

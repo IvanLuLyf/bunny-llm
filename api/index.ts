@@ -78,6 +78,17 @@ function calcProofToken(seed, difficulty) {
     return proofToken;
 }
 
+async function fetchToken(oaiDeviceId): Promise<{ token, seed, difficulty }> {
+    try {
+        const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '{}', {"oai-device-id": oaiDeviceId})
+        const auth = await authRes.json();
+        const {token, proofofwork} = auth;
+        return {token, seed: proofofwork.seed, difficulty: proofofwork.difficulty};
+    } catch (e) {
+        return {token: undefined, seed: undefined, difficulty: undefined};
+    }
+}
+
 
 export default async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -92,11 +103,8 @@ export default async (req: Request) => {
     const url = new URL(req.url);
     if (url.pathname === "/token") {
         const oaiDeviceId = generateUUID();
-        const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '', {"oai-device-id": oaiDeviceId})
-        const auth = await authRes.json();
-        const token = auth.token;
-        const seed = auth?.proofofwork?.seed;
-        const difficulty = auth?.proofofwork?.difficulty;
+        const auth = await fetchToken(oaiDeviceId);
+        const {token, seed, difficulty} = auth;
         return new Response(JSON.stringify({
             token: encodeURIComponent(JSON.stringify({id: oaiDeviceId, token, seed, difficulty}))
         }), {
@@ -122,11 +130,10 @@ export default async (req: Request) => {
         }
         if (!oaiDeviceId || !token) {
             oaiDeviceId = generateUUID();
-            const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '', {"oai-device-id": oaiDeviceId})
-            const auth = await authRes.json();
+            const auth = await fetchToken(oaiDeviceId);
             token = auth.token;
-            seed = auth?.proofofwork?.seed;
-            difficulty = auth?.proofofwork?.difficulty;
+            seed = auth.seed;
+            difficulty = auth.difficulty;
         }
         const reqBody = await req.json();
         const messages = reqBody.messages;

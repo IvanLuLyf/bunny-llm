@@ -1,6 +1,6 @@
 # bunny-gpt
 
-a Deno ChatGPT 3.5 API Service
+a Deno LLM API Service
 
 ## Usage
 
@@ -27,11 +27,14 @@ print(res.choices[0].message.content)
 
 ### CloudFlare Workers AI
 
-- [Original API](https://developers.cloudflare.com/api/operations/workers-ai-post-run-model) 
-- [Available Models](https://developers.cloudflare.com/workers-ai/models/)
+- [Document](https://developers.cloudflare.com/api/operations/workers-ai-post-run-model)
+- [Supported Models](https://developers.cloudflare.com/workers-ai/models/)
 
 ```python
 from openai import OpenAI
+
+import json
+import urllib.parse
 
 client = OpenAI(
     api_key=urllib.parse.quote(json.dumps({
@@ -40,16 +43,20 @@ client = OpenAI(
     })),
     base_url='https://bunny-gpt.deno.dev/cloudflare/v1/',
 )
+```
 
-res = client.chat.completions.create(
-    model='@cf/qwen/qwen1.5-0.5b-chat',
-    messages=[
-        {'role': 'user', 'content': 'Who are you?'}
-    ],
-    max_tokens=None,
-    temperature=0,
+### Groq
+
+- [Get API KEY](https://console.groq.com/keys)
+- [Supported Models](https://console.groq.com/docs/models)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key='YOUR_GROQ_API_KEY',
+    base_url='https://bunny-gpt.deno.dev/groq/v1/',
 )
-print(res.choices[0].message.content)
 ```
 
 ## Deploy

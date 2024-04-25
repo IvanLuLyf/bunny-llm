@@ -81,10 +81,15 @@ function calcProofToken(seed, difficulty) {
 async function fetchToken(oaiDeviceId): Promise<{ token, seed, difficulty }> {
     try {
         const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '{}', {"oai-device-id": oaiDeviceId})
-        const auth = await authRes.json();
-        const {token, proofofwork} = auth;
-        return {token, seed: proofofwork.seed, difficulty: proofofwork.difficulty};
+        try {
+            const auth = await authRes.json();
+            const {token, proofofwork} = auth;
+            return {token, seed: proofofwork.seed, difficulty: proofofwork.difficulty};
+        } catch (e) {
+            console.log(await authRes.text());
+        }
     } catch (e) {
+        console.log(e);
         return {token: undefined, seed: undefined, difficulty: undefined};
     }
 }

@@ -104,6 +104,8 @@
         });
         const NOOP = () => undefined;
 
+        window.fakeToken = (o) => encodeURIComponent(JSON.stringify(o));
+
         function requestLLM(url, body, callback = NOOP, onFinish = NOOP) {
             const xhr = new XMLHttpRequest();
             let last = 0;

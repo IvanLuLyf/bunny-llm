@@ -7,7 +7,7 @@ Deno.serve(async (req: Request) => {
         return optionsResponse();
     }
     const url = new URL(req.url);
-    const arr = url.split("/");
+    const arr = url.pathname.split("/");
     const mod = arr[1] || "";
     if (mod === "v1" || url.pathname === '/token') {
         return await api(req);

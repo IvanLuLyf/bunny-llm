@@ -1,6 +1,6 @@
 import {Sha3_512} from "https://deno.land/std@0.119.0/hash/sha3.ts";
 import {encode} from "https://deno.land/std@0.136.0/encoding/base64.ts";
-import {makeReply} from "../util/data.ts";
+import {baseResponse, jsonResponse, makeReply, optionsResponse} from "../util/index.ts";
 
 const BASE_URL = "https://chat.openai.com";
 const API_URL = `${BASE_URL}/backend-api/conversation`;
@@ -91,25 +91,9 @@ async function fetchToken(oaiDeviceId): Promise<{ token?, seed, difficulty }> {
     return {err: text};
 }
 
-function jsonResponse(o) {
-    return new Response(JSON.stringify(o), {
-        headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "application/json;charset=UTF-8",
-        },
-    });
-}
-
-
 export default async (req: Request) => {
     if (req.method === "OPTIONS") {
-        return new Response(null, {
-            headers: new Headers({
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization",
-            })
-        });
+        return optionsResponse();
     }
     const url = new URL(req.url);
     if (url.pathname === "/token") {
@@ -237,12 +221,6 @@ export default async (req: Request) => {
             },
         });
     } else {
-        return new Response(JSON.stringify({
-            ver: "20240410"
-        }), {
-            headers: new Headers({
-                "Content-Type": "application/json;charset=utf-8"
-            })
-        });
+        return baseResponse();
     }
 };

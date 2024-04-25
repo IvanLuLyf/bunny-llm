@@ -78,20 +78,30 @@ function calcProofToken(seed, difficulty) {
     return proofToken;
 }
 
-async function fetchToken(oaiDeviceId): Promise<{ token, seed, difficulty }> {
+async function fetchToken(oaiDeviceId): Promise<{ token?, seed, difficulty }> {
     try {
-        const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '{}', {"oai-device-id": oaiDeviceId})
+        const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '{}', {"oai-device-id": oaiDeviceId});
+        const text = await authRes.text();
         try {
-            const auth = await authRes.json();
+            const auth = JSON.parse(text);
             const {token, proofofwork} = auth;
             return {token, seed: proofofwork.seed, difficulty: proofofwork.difficulty};
         } catch (e) {
-            console.log(await authRes.text());
+            console.log("ERROR TEXT", text);
         }
     } catch (e) {
         console.log(e);
-        return {token: undefined, seed: undefined, difficulty: undefined};
     }
+    return {};
+}
+
+function jsonResponse(o) {
+    return new Response(JSON.stringify(o), {
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": "application/json;charset=UTF-8",
+        },
+    });
 }
 
 
@@ -110,13 +120,11 @@ export default async (req: Request) => {
         const oaiDeviceId = generateUUID();
         const auth = await fetchToken(oaiDeviceId);
         const {token, seed, difficulty} = auth;
-        return new Response(JSON.stringify({
+        if (!token) {
+            return jsonResponse({err: "Token is empty."});
+        }
+        return jsonResponse({
             token: encodeURIComponent(JSON.stringify({id: oaiDeviceId, token, seed, difficulty}))
-        }), {
-            headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Content-Type": "application/json;charset=UTF-8",
-            },
         });
     } else if (url.pathname === '/v1/chat/completions') {
         let oaiDeviceId = '', token = '', seed, difficulty;
@@ -127,7 +135,7 @@ export default async (req: Request) => {
                 const t = JSON.parse(decodeURIComponent(authToken));
                 oaiDeviceId = t.id;
                 token = t.token;
-                seed = t?.seed;
+                seed = t.seed;
                 difficulty = t?.difficulty;
             } catch (e) {
 
@@ -139,6 +147,9 @@ export default async (req: Request) => {
             token = auth.token;
             seed = auth.seed;
             difficulty = auth.difficulty;
+        }
+        if (!token) {
+            return jsonResponse({err: "Token is empty."});
         }
         const reqBody = await req.json();
         const messages = reqBody.messages;

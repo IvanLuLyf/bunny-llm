@@ -79,20 +79,21 @@ function calcProofToken(seed, difficulty) {
 }
 
 async function fetchToken(oaiDeviceId): Promise<{ token?, seed, difficulty }> {
+    let text = '';
     try {
         const authRes = await fetchOpenAI(`${BASE_URL}/backend-anon/sentinel/chat-requirements`, '{}', {"oai-device-id": oaiDeviceId});
-        const text = await authRes.text();
+        text = await authRes.text();
         try {
             const auth = JSON.parse(text);
             const {token, proofofwork} = auth;
             return {token, seed: proofofwork.seed, difficulty: proofofwork.difficulty};
         } catch (e) {
-            console.log("ERROR TEXT", text);
+            console.log(e);
         }
     } catch (e) {
         console.log(e);
     }
-    return {};
+    return {err: text};
 }
 
 function jsonResponse(o) {
@@ -119,15 +120,15 @@ export default async (req: Request) => {
     if (url.pathname === "/token") {
         const oaiDeviceId = generateUUID();
         const auth = await fetchToken(oaiDeviceId);
-        const {token, seed, difficulty} = auth;
+        const {token, seed, difficulty, err} = auth;
         if (!token) {
-            return jsonResponse({err: "Token is empty."});
+            return jsonResponse({msg: "Token is empty.", err});
         }
         return jsonResponse({
             token: encodeURIComponent(JSON.stringify({id: oaiDeviceId, token, seed, difficulty}))
         });
     } else if (url.pathname === '/v1/chat/completions') {
-        let oaiDeviceId = '', token = '', seed, difficulty;
+        let oaiDeviceId = '', token = '', seed, difficulty, err = '';
         if (req.headers.has("Authorization")) {
             const tmp = req.headers.get("Authorization");
             const authToken = tmp.startsWith("Bearer ") ? tmp.substring(7) : tmp;
@@ -147,9 +148,10 @@ export default async (req: Request) => {
             token = auth.token;
             seed = auth.seed;
             difficulty = auth.difficulty;
+            err = auth.err;
         }
         if (!token) {
-            return jsonResponse({err: "Token is empty."});
+            return jsonResponse({msg: "Token is empty.", err});
         }
         const reqBody = await req.json();
         const messages = reqBody.messages;

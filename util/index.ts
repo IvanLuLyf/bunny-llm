@@ -81,12 +81,24 @@ export function optionsResponse() {
     });
 }
 
+export function fakeToken(o) {
+    if (typeof o === "object") {
+        return encodeURIComponent(JSON.stringify(o));
+    }
+    const authToken = o.startsWith("Bearer ") ? o.substring(7) : o;
+    try {
+        return JSON.parse(decodeURIComponent(authToken));
+    } catch (e) {
+        return {};
+    }
+}
+
 export function replyResponse(
     model,
-    id: string = "bunny-",
     stream: boolean = false,
     fetcher: () => Promise<ReadableStreamDefaultReader>,
-    converter: () => string,
+    converter: (m: Object) => string,
+    id: string = "bunny-",
 ) {
     const decoder = new TextDecoder("utf-8");
     const encoder = new TextEncoder();

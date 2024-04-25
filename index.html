@@ -71,7 +71,7 @@
         <label>
             <input name="content" placeholder="" value=""/>
         </label>
-        <button name="btn" type="submit" class="btn" disabled>Send</button>
+        <button name="btn" type="submit" class="btn">Send</button>
     </form>
     <div id="result"></div>
 </div>
@@ -105,13 +105,6 @@
         });
         const NOOP = () => undefined;
 
-        function getToken() {
-            fetch("./token").then((r) => r.json()).then((r) => {
-                btn.disabled = false;
-                token = r.token;
-            });
-        }
-
         function requestLLM(url, body, callback = NOOP, onFinish = NOOP) {
             const xhr = new XMLHttpRequest();
             let last = 0;
@@ -137,7 +130,6 @@
             };
             xhr.open('POST', url, true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            // if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
             xhr.onprogress = function () {
                 const response = xhr.responseText.substring(last);
                 last = xhr.responseText.length;
@@ -147,8 +139,6 @@
             xhr.responseType = 'text';
             xhr.send(JSON.stringify(body));
         }
-
-        getToken();
     })();
 </script>
 </body>

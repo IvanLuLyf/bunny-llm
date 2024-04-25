@@ -1,5 +1,6 @@
 import {Sha3_512} from "https://deno.land/std@0.119.0/hash/sha3.ts";
 import {encode} from "https://deno.land/std@0.136.0/encoding/base64.ts";
+import {makeReply} from "../util/data.ts";
 
 const BASE_URL = "https://chat.openai.com";
 const API_URL = `${BASE_URL}/backend-api/conversation`;
@@ -176,6 +177,7 @@ export default async (req: Request) => {
                     let fullContent = "";
                     let requestId = "chatcmpl-";
                     let created = Date.now();
+                    const reply = makeReply({model: "gpt-3.5-turbo", id: "chatcmpl-", created});
                     const loop = () => {
                         reader.read().then((g) => {
                             const text = decoder.decode(g.value);
@@ -200,22 +202,7 @@ export default async (req: Request) => {
                                     }
                                     if (content === "") continue;
                                     if (isStream) {
-                                        let response = {
-                                            id: requestId,
-                                            created,
-                                            object: "chat.completion.chunk",
-                                            model: "gpt-3.5-turbo",
-                                            choices: [
-                                                {
-                                                    delta: {
-                                                        content: content.replace(fullContent, ""),
-                                                    },
-                                                    index: 0,
-                                                    finish_reason: null,
-                                                },
-                                            ],
-                                        };
-                                        controller.enqueue(encoder.encode(`data: ${JSON.stringify(response)}\n\n`));
+                                        controller.enqueue(encoder.encode(`data: ${JSON.stringify(reply.chunk(content.replace(fullContent, "")))}\n\n`));
                                     }
                                     fullContent = content.length > fullContent.length ? content : fullContent;
                                 }
@@ -224,43 +211,9 @@ export default async (req: Request) => {
                                 loop();
                             } else {
                                 if (isStream) {
-                                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-                                        id: requestId,
-                                        created: created,
-                                        object: "chat.completion.chunk",
-                                        model: "gpt-3.5-turbo",
-                                        choices: [
-                                            {
-                                                delta: {
-                                                    content: "",
-                                                },
-                                                index: 0,
-                                                finish_reason: "stop",
-                                            },
-                                        ],
-                                    })}\n\n`));
+                                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(reply.finish())}\n\n`));
                                 } else {
-                                    controller.enqueue(encoder.encode(JSON.stringify({
-                                        id: requestId,
-                                        created: created,
-                                        object: "chat.completion",
-                                        model: "gpt-3.5-turbo",
-                                        choices: [
-                                            {
-                                                message: {
-                                                    content: fullContent,
-                                                    role: "assistant",
-                                                },
-                                                index: 0,
-                                                finish_reason: "stop",
-                                            },
-                                        ],
-                                        usage: {
-                                            prompt_tokens: 0,
-                                            completion_tokens: 0,
-                                            total_tokens: 0,
-                                        },
-                                    })));
+                                    controller.enqueue(encoder.encode(JSON.stringify(reply.full(fullContent))));
                                 }
                                 controller.close();
                             }

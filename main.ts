@@ -1,6 +1,7 @@
 import {htmlResponse, optionsResponse} from "./util/index.ts";
 import api from "./api/index.ts";
 import cloudflare from "./api/cloudflare.ts";
+import groq from "./api/groq.ts";
 
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -13,6 +14,8 @@ Deno.serve(async (req: Request) => {
         return await api(req);
     } else if (mod === "cloudflare") {
         return await cloudflare(req);
+    } else if (mod === "groq") {
+        return await groq(req);
     } else {
         const data = await Deno.readFile("./index.html");
         return htmlResponse(new TextDecoder().decode(data));

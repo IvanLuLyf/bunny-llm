@@ -175,7 +175,6 @@ export default async (req: Request) => {
                     const decoder = new TextDecoder();
                     const encoder = new TextEncoder();
                     let fullContent = "";
-                    let requestId = "chatcmpl-";
                     let created = Date.now();
                     const reply = makeReply({model: "gpt-3.5-turbo", id: "chatcmpl-", created});
                     const loop = () => {

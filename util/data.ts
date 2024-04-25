@@ -1,10 +1,4 @@
-export function makeReply(
-    {
-        model: string = "bunny",
-        id: string = "bunny-",
-        created: number = 0
-    } = {}
-) {
+export function makeReply({model = "bunny", id = "bunny-", created = 0} = {}) {
     return {
         chunk: (content) => ({
             id,

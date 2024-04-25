@@ -8,6 +8,14 @@
     {
       "src": "/v1/(.*)",
       "dest": "/api/index.ts"
+    },
+    {
+      "src": "/cloudflare/v1/(.*)",
+      "dest": "/api/cloudflare.ts"
+    },
+    {
+      "src": "/groq/v1/(.*)",
+      "dest": "/api/groq.ts"
     }
   ],
   "github": {

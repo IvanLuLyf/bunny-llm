@@ -1,3 +1,3 @@
 import {createOpenAICompact} from "../util/index.ts";
 
-export default createOpenAICompact("https://api.groq.com/openai/");
+export default createOpenAICompact("groq", "api.groq.com", "/openai");

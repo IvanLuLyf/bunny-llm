@@ -27,7 +27,8 @@ export default async (req: Request) => {
         model = rawModel.substring(pos + 1);
     }
     const runner = RUNNERS[mod] || RUNNERS.free;
-    return await runner(new Request(req.url, {
+    console.log("mod", mod, "model", model, "runner", runner);
+    const request = new Request(req.url, {
         headers: req.headers,
         method: req.method,
         body: JSON.stringify({
@@ -35,5 +36,7 @@ export default async (req: Request) => {
             model,
         }),
         redirect: "follow",
-    }));
+    });
+    console.log("request", request);
+    return await runner(request);
 }

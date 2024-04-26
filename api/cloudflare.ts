@@ -34,7 +34,7 @@ export default async (req: Request) => {
         const auth: { account: string, token: string } = fakeToken(req.headers.get("Authorization"));
         const body = await req.json();
         const model = body.model;
-        return imageResponse(fetch(`https://api.cloudflare.com/client/v4/accounts/${auth.account}/ai/run/${model}`, {
+        return imageResponse(() => fetch(`https://api.cloudflare.com/client/v4/accounts/${auth.account}/ai/run/${model}`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${auth.token}`,

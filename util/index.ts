@@ -171,6 +171,7 @@ export function imageResponse(
                         created: Date.now(),
                         data: [{url: reader.result}],
                     })));
+                    controller.close();
                 });
                 reader.readAsDataURL(blob);
             });

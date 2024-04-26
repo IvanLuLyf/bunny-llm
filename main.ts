@@ -14,7 +14,7 @@ Deno.serve(async (req: Request) => {
     const arr = url.pathname.split("/");
     const mod = arr[1] || "";
     if (mod === "v1") {
-        return index(req);
+        return await index(req);
     } else if (mod === "free") {
         return await freeGPT(req);
     } else if (mod === "openai") {

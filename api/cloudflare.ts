@@ -1,4 +1,4 @@
-import {baseResponse, fakeToken, jsonResponse, optionsResponse, replyResponse} from "../util/index.ts";
+import {baseResponse, fakeToken, imageResponse, jsonResponse, optionsResponse, replyResponse} from "../util/index.ts";
 
 export default async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -27,6 +27,22 @@ export default async (req: Request) => {
         }, (m) => {
             return m.response || "";
         });
+    } else if (url.pathname.endsWith("/v1/images/generations")) {
+        if (!req.headers.has("Authorization")) {
+            return jsonResponse({err: "Token is empty."});
+        }
+        const auth: { account: string, token: string } = fakeToken(req.headers.get("Authorization"));
+        const body = await req.json();
+        const model = body.model;
+        return imageResponse(fetch(`https://api.cloudflare.com/client/v4/accounts/${auth.account}/ai/run/${model}`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${auth.token}`,
+            },
+            body: JSON.stringify({
+                prompt: body.prompt,
+            }),
+        }).then((res) => res.blob()));
     }
     return baseResponse();
 }

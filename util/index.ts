@@ -158,6 +158,26 @@ export function replyResponse(
     });
 }
 
+export function imageResponse(
+    fetcher: () => Promise<Blob>,
+) {
+    return new Response(new ReadableStream({
+        start(controller) {
+            const encoder = new TextEncoder();
+            fetcher().then((blob) => {
+                const reader = new FileReader();
+                reader.addEventListener('loadend', () => {
+                    controller.enqueue(encoder.encode(JSON.stringify({url: reader.result})));
+                });
+                reader.readAsDataURL(blob);
+            });
+        }
+    }), {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json;charset=UTF-8",
+    })
+}
+
 export function createOpenAICompact(name = "openai", host = "api.openai.com", pathPrefix = "") {
     return async (req: Request) => {
         if (req.method === "OPTIONS") {

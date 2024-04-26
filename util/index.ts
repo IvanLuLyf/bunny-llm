@@ -167,7 +167,9 @@ export function imageResponse(
             fetcher().then((blob) => {
                 const reader = new FileReader();
                 reader.addEventListener('loadend', () => {
-                    controller.enqueue(encoder.encode(JSON.stringify({url: reader.result})));
+                    controller.enqueue(encoder.encode(JSON.stringify({
+                        data: [{url: reader.result}],
+                    })));
                 });
                 reader.readAsDataURL(blob);
             });

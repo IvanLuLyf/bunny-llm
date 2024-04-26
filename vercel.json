@@ -10,8 +10,16 @@
       "dest": "/api/index.ts"
     },
     {
+      "src": "/openai/v1/(.*)",
+      "dest": "/api/openai.ts"
+    },
+    {
       "src": "/cloudflare/v1/(.*)",
       "dest": "/api/cloudflare.ts"
+    },
+    {
+      "src": "/kimi/v1/(.*)",
+      "dest": "/api/kimi.ts"
     },
     {
       "src": "/groq/v1/(.*)",

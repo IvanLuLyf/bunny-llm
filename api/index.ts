@@ -16,7 +16,7 @@ export default async (req: Request) => {
     if (req.method === "OPTIONS") {
         return optionsResponse();
     }
-    const {model: rawModel, ...rest}: { model: string } = await req.json();
+    const {model: rawModel = '', ...rest} = await req.json();
     const pos = rawModel.indexOf(":");
     let mod, model;
     if (pos === -1) {

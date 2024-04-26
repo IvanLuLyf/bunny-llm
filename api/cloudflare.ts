@@ -42,10 +42,7 @@ export default async (req: Request) => {
             body: JSON.stringify({
                 prompt: body.prompt,
             }),
-        }).then((res) => {
-            console.log(res);
-            return res.blob();
-        }));
+        }).then((res) => res.blob()));
     }
     return baseResponse();
 }

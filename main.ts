@@ -1,4 +1,5 @@
 import {htmlResponse, optionsResponse} from "./util/index.ts";
+import index from "./api/index.ts"
 import freeGPT from "./api/freeGPT.ts";
 import openai from "./api/openai.ts";
 import cloudflare from "./api/cloudflare.ts";
@@ -12,7 +13,9 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const arr = url.pathname.split("/");
     const mod = arr[1] || "";
-    if (mod === "v1" || mod === "free" || url.pathname === '/token') {
+    if (mod === "v1") {
+        return index(req);
+    } else if (mod === "free") {
         return await freeGPT(req);
     } else if (mod === "openai") {
         return await openai(req);

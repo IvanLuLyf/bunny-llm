@@ -7,7 +7,11 @@
   "routes": [
     {
       "src": "/v1/(.*)",
-      "dest": "/api/index.ts"
+      "dest": "/api/freeGPT.ts"
+    },
+    {
+      "src": "/free/v1/(.*)",
+      "dest": "/api/freeGPT.ts"
     },
     {
       "src": "/openai/v1/(.*)",

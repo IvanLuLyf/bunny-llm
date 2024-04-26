@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bunny GPT</title>
+    <title>Bunny LLM</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
     <style>
@@ -62,11 +62,15 @@
             font-size: 16px;
             line-height: 1.5;
         }
+
+        #result:empty {
+            display: none;
+        }
     </style>
 </head>
 <body>
 <div id="app">
-    <h1>Bunny GPT</h1>
+    <h1>Bunny LLM</h1>
     <form id="form_query">
         <label>
             <input name="content" placeholder="" value=""/>

@@ -1,4 +1,4 @@
-# bunny-gpt
+# Bunny-LLM
 
 a Deno LLM API Service
 
@@ -11,7 +11,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key='EMPTY',
-    base_url='https://bunny-gpt.deno.dev/v1/',
+    base_url='https://bunny-llm.deno.dev/v1/',
 )
 
 res = client.chat.completions.create(
@@ -41,7 +41,7 @@ client = OpenAI(
         'account': 'YOUR_ACCOUNT_ID',
         'token': 'YOUR_API_TOKEN',
     })),
-    base_url='https://bunny-gpt.deno.dev/cloudflare/v1/',
+    base_url='https://bunny-llm.deno.dev/cloudflare/v1/',
 )
 ```
 
@@ -55,7 +55,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key='YOUR_GROQ_API_KEY',
-    base_url='https://bunny-gpt.deno.dev/groq/v1/',
+    base_url='https://bunny-llm.deno.dev/groq/v1/',
 )
 ```
 
@@ -63,4 +63,4 @@ client = OpenAI(
 
 ### Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FIvanLuLyf%2Fbunny-gpt)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FIvanLuLyf%2Fbunny-llm)

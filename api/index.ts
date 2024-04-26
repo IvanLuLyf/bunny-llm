@@ -1,9 +1,9 @@
 import {optionsResponse} from "../util/index.ts";
-import free from "./api/freeGPT.ts";
-import openai from "./api/openai.ts";
-import cloudflare from "./api/cloudflare.ts";
-import groq from "./api/groq.ts";
-import kimi from "./api/kimi.ts";
+import free from "./freeGPT.ts";
+import openai from "./openai.ts";
+import cloudflare from "./cloudflare.ts";
+import groq from "./groq.ts";
+import kimi from "./kimi.ts";
 
 const RUNNERS = {
     free,

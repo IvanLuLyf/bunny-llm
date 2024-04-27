@@ -26,6 +26,8 @@ export default async (req: Request) => {
         const body = await req.json();
         const model = body.model;
         const messages = body.messages;
+        console.log("auth", auth);
+        console.log("body", body);
         return replyResponse(model, body.stream, () => {
             return fetch(`https://api.cloudflare.com/client/v4/accounts/${auth.account}/ai/run/${model}`, {
                 method: "POST",

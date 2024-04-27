@@ -18,6 +18,7 @@ export default async (req: Request) => {
         return optionsResponse();
     }
     const url = new URL(req.url);
+    console.log("REQ URL", url.toString());
     if (url.pathname.endsWith("/v1/chat/completions")) {
         if (!req.headers.has("Authorization")) {
             return jsonResponse({err: "Token is empty."});

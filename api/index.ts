@@ -27,8 +27,6 @@ export default async (req: Request) => {
         model = rawModel.substring(pos + 1);
     }
     const runner = RUNNERS[mod] || RUNNERS.free;
-    console.log("rest", rest);
-    console.log("mod", mod, "model", model, "runner", runner);
     const request = new Request(req.url, {
         headers: req.headers,
         method: req.method,
@@ -37,6 +35,5 @@ export default async (req: Request) => {
             model,
         }),
     });
-    console.log("request", request);
     return await runner(request);
 }

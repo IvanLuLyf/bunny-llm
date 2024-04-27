@@ -121,6 +121,9 @@
         const MODEL_LIST = [
             "openai:gpt-3.5-turbo",
             "openai:dall-e-2",
+            "cloudflare:@cf/qwen/qwen1.5-0.5b-chat",
+            "cloudflare:@cf/bytedance/stable-diffusion-xl-lightning",
+            "groq:gemma-7b-it",
         ];
         let token = '';
         const form = document.getElementById('form_query');
@@ -177,9 +180,11 @@
         function loadTokenConfig() {
             const el = form.elements;
             token = localStorage['bunny_api_token'] || '';
-            el.token.value = token;
-            el.model.innerHTML = `${TYPE_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
-            el.type.innerHTML = `${MODEL_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
+            if (token) {
+                el.token.value = token;
+                el.model.innerHTML = `${TYPE_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
+                el.type.innerHTML = `${MODEL_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
+            }
         }
 
         const NOOP = () => undefined;

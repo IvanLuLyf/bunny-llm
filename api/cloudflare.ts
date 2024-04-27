@@ -18,7 +18,8 @@ export default async (req: Request) => {
         return optionsResponse();
     }
     const url = new URL(req.url);
-    console.log("REQ URL", url.toString());
+    console.log("url.pathname", url.pathname);
+    console.log("url.pathname", url.pathname.endsWith("/v1/chat/completions"));
     if (url.pathname.endsWith("/v1/chat/completions")) {
         if (!req.headers.has("Authorization")) {
             return jsonResponse({err: "Token is empty."});
@@ -27,8 +28,6 @@ export default async (req: Request) => {
         const body = await req.json();
         const model = body.model;
         const messages = body.messages;
-        console.log("auth", auth);
-        console.log("body", body);
         return replyResponse(model, body.stream, () => {
             return fetch(`https://api.cloudflare.com/client/v4/accounts/${auth.account}/ai/run/${model}`, {
                 method: "POST",

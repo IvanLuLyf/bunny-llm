@@ -1,6 +1,6 @@
 import {Sha3_512} from "https://deno.land/std@0.119.0/hash/sha3.ts";
 import {encode} from "https://deno.land/std@0.136.0/encoding/base64.ts";
-import {baseResponse, jsonResponse, makeReply, optionsResponse} from "../util/index.ts";
+import {baseResponse, generateUUID, jsonResponse, makeReply, optionsResponse} from "../util/index.ts";
 
 const BASE_URL = "https://chat.openai.com";
 const API_URL = `${BASE_URL}/backend-api/conversation`;
@@ -30,15 +30,6 @@ async function fetchOpenAI(url: string, body = '', header = {}) {
         },
         body,
     })
-}
-
-function generateUUID(): string {
-    const randomBytes = new Uint8Array(16);
-    crypto.getRandomValues(randomBytes);
-    randomBytes[6] = (randomBytes[6] & 0x0f) | 0x40;
-    randomBytes[8] = (randomBytes[8] & 0x3f) | 0x80;
-    const hex = [...randomBytes].map(b => b.toString(16).padStart(2, '0')).join('');
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 const PROOF_TOKEN_PREFIX = "gAAAAABwQ8Lk5FbGpA2NcR9dShT6gYjU7VxZ4D";

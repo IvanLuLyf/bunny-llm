@@ -1,5 +1,5 @@
 import {COMPAT_MAPPER} from "./config/index.ts";
-import {createOpenAICompact, htmlResponse, optionsResponse} from "./util/index.ts";
+import {createOpenAICompact, htmlResponse, optionsResponse, tempImgResponse} from "./util/index.ts";
 import index from "./api/index.ts"
 import freeGPT from "./api/freeGPT.ts";
 import cloudflare from "./api/cloudflare.ts";
@@ -13,6 +13,8 @@ Deno.serve(async (req: Request) => {
     const mod = arr[1] || "";
     if (mod === "v1") {
         return await index(req);
+    } else if (mod === "image") {
+        return await tempImgResponse(arr[2]);
     } else if (mod === "free") {
         return await freeGPT(req);
     } else if (mod in COMPAT_MAPPER) {

@@ -1,5 +1,14 @@
 import {BUNNY_IMAGE_PREFIX} from "../config/index.ts";
 
+export function generateUUID(): string {
+    const randomBytes = new Uint8Array(16);
+    crypto.getRandomValues(randomBytes);
+    randomBytes[6] = (randomBytes[6] & 0x0f) | 0x40;
+    randomBytes[8] = (randomBytes[8] & 0x3f) | 0x80;
+    const hex = [...randomBytes].map(b => b.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 export function makeReply({model = "bunny", id = "bunny-", created = 0} = {}) {
     return {
         chunk: (content) => ({
@@ -160,17 +169,33 @@ export function replyResponse(
     });
 }
 
+export async function tempImgResponse(file) {
+    const kv = await Deno.openKv();
+    return new Response(new ReadableStream({
+        start(controller) {
+            kv.get(file).then((buffer) => {
+                controller.enqueue(buffer);
+                controller.close();
+            });
+        },
+    }), {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "image/png",
+    })
+}
+
 export function imageResponse(
     fetcher: () => Promise<Blob>,
 ) {
     return new Response(new ReadableStream({
         start(controller) {
             if (BUNNY_IMAGE_PREFIX) {
-                Deno.makeTempFile({prefix: "image_"}).then((file) => {
+                Deno.openKv().then((kv) => {
                     fetcher().then((blob) => {
                         return blob.arrayBuffer();
                     }).then((buffer) => {
-                        return Deno.writeFile(file, buffer);
+                        const file = `/${generateUUID()}.png`;
+                        return kv.set(file, new Uint8Array(buffer), {expireIn: 300000});
                     }).then(() => {
                         controller.enqueue(encoder.encode(JSON.stringify({
                             created: Date.now(),

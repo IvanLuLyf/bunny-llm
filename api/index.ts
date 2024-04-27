@@ -8,9 +8,8 @@ const RUNNERS = {
     cloudflare,
 }
 export default async (req: Request) => {
-    if (req.method === "OPTIONS") {
-        return optionsResponse();
-    }
+    const method = req.method;
+    if (method === "OPTIONS") return optionsResponse();
     const {model: rawModel = '', ...rest} = await req.json();
     const pos = rawModel.indexOf(":");
     let mod, model;
@@ -20,6 +19,9 @@ export default async (req: Request) => {
     } else {
         mod = rawModel.substring(0, pos).toLowerCase();
         model = rawModel.substring(pos + 1);
+    }
+    const headers = {
+        ...req.headers,
     }
     const body = JSON.stringify({
         ...rest,
@@ -34,20 +36,11 @@ export default async (req: Request) => {
             const auth = req.headers.get("Authorization");
             const token = auth.startsWith("Bearer ") ? auth.substring(7) : auth;
             if (token === BUNNY_API_TOKEN) {
-                req.headers.set("Authorization", `Bearer ${config.api_key}`)
+                headers["Authorization"] = `Bearer ${config.api_key}`;
             }
         }
-        return await fetch(new Request(url.toString(), {
-            headers: req.headers,
-            method: req.method,
-            body,
-            redirect: "follow",
-        }));
+        return await fetch(new Request(url.toString(), {headers, method, body, redirect: "follow"}));
     }
     const runner = RUNNERS[mod] || RUNNERS.free;
-    return await runner(new Request(req.url, {
-        headers: req.headers,
-        method: req.method,
-        body,
-    }));
+    return await runner(new Request(req.url, {headers, method, body}));
 }

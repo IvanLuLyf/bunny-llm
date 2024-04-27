@@ -1,7 +1,7 @@
 import {optionsResponse} from "../util/index.ts";
 import free from "./freeGPT.ts";
 import cloudflare from "./cloudflare.ts";
-import {COMPAT_MAPPER} from "../config/compatMapper.ts";
+import {BUNNY_API_TOKEN, COMPAT_MAPPER} from "../config/compatMapper.ts";
 
 const RUNNERS = {
     free,
@@ -30,6 +30,13 @@ export default async (req: Request) => {
         const url = new URL(req.url);
         url.host = config.host;
         if (config.prefix) url.pathname = config.prefix + url.pathname;
+        if (req.headers.has("Authorization") && config.api_key) {
+            const auth = req.headers.get("Authorization");
+            const token = auth.startsWith("Bearer ") ? auth.substring(7) : auth;
+            if (token === BUNNY_API_TOKEN) {
+                req.headers.set("Authorization", `Bearer ${config.api_key}`)
+            }
+        }
         return await fetch(new Request(url.toString(), {
             headers: req.headers,
             method: req.method,

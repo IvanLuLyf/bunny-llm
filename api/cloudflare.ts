@@ -1,4 +1,17 @@
+import {BUNNY_API_TOKEN} from "../config/compatMapper.ts";
 import {baseResponse, fakeToken, imageResponse, jsonResponse, optionsResponse, replyResponse} from "../util/index.ts";
+
+const CF_ACCOUNT_ID = Deno.env.get("CF_ACCOUNT_ID");
+const CF_API_TOKEN = Deno.env.get("CF_API_TOKEN");
+
+function makeToken(auth): { account: string, token: string } {
+    const token = auth.startsWith("Bearer ") ? auth.substring(7) : auth;
+    if (token === BUNNY_API_TOKEN) {
+        return {account: CF_ACCOUNT_ID, token: CF_API_TOKEN};
+    } else {
+        return fakeToken(auth);
+    }
+}
 
 export default async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -9,7 +22,7 @@ export default async (req: Request) => {
         if (!req.headers.has("Authorization")) {
             return jsonResponse({err: "Token is empty."});
         }
-        const auth: { account: string, token: string } = fakeToken(req.headers.get("Authorization"));
+        const auth = makeToken(req.headers.get("Authorization"));
         const body = await req.json();
         const model = body.model;
         const messages = body.messages;
@@ -31,7 +44,7 @@ export default async (req: Request) => {
         if (!req.headers.has("Authorization")) {
             return jsonResponse({err: "Token is empty."});
         }
-        const auth: { account: string, token: string } = fakeToken(req.headers.get("Authorization"));
+        const auth = makeToken(req.headers.get("Authorization"));
         const body = await req.json();
         const model = body.model;
         return imageResponse(() => fetch(`https://api.cloudflare.com/client/v4/accounts/${auth.account}/ai/run/${model}`, {

@@ -4,65 +4,74 @@ a Deno LLM API Service
 
 ## Usage
 
-### Free ChatGPT 3.5
+Set `base_url` to `https://bunny-llm.deno.dev/v1/` or your own endpoint.
+
+Set env variable `BUNNY_API_TOKEN` and specific vendor tokens.
+
+Model format `[vendor]:[model_name]`, for example `openai:gpt-4-turbo`
+
+### Example
 
 ```python
 from openai import OpenAI
 
 client = OpenAI(
-    api_key='EMPTY',
     base_url='https://bunny-llm.deno.dev/v1/',
+    api_key='YOUR_BUNNY_API_TOKEN',
 )
-model_name = 'gpt-3.5-turbo'
+model_name = 'cloudflare:@cf/qwen/qwen1.5-0.5b-chat'
 
 res = client.chat.completions.create(
     model=model_name,
     messages=[
         {'role': 'user', 'content': 'Who are you?'}
     ],
-    max_tokens=None,
-    temperature=0,
 )
 print(res.choices[0].message.content)
 ```
 
+### Free ChatGPT 3.5
+
+`vendor` is `free`
+
+`api_key` is `EMPTY`
+
+`model` is `gpt-3.5-turbo` only
+
 ### CloudFlare Workers AI
 
-- [Document](https://developers.cloudflare.com/api/operations/workers-ai-post-run-model)
-- [Supported Models](https://developers.cloudflare.com/workers-ai/models/)
+`vender` is `cloudflare`
+
+`model` can refer to [Supported Models](https://developers.cloudflare.com/workers-ai/models/)
+
+Set env variable `CF_ACCOUNT_ID` and `CF_API_TOKEN` or use the following algorithm.
+
+```javascript
+// JavaScript
+api_key = encodeURIComponent(JSON.stringify({
+    'account': 'YOUR_CF_ACCOUNT_ID',
+    'token': 'YOUR_CF_API_TOKEN',
+}))
+```
 
 ```python
-from openai import OpenAI
-
+# python
 import json
 import urllib.parse
 
-client = OpenAI(
-    api_key=urllib.parse.quote(json.dumps({
-        'account': 'YOUR_ACCOUNT_ID',
-        'token': 'YOUR_API_TOKEN',
-    })),
-    base_url='https://bunny-llm.deno.dev/v1/',
-)
-
-model_name = 'cloudflare:@cf/qwen/qwen1.5-0.5b-chat'
+api_key=urllib.parse.quote(json.dumps({
+    'account': 'YOUR_CF_ACCOUNT_ID',
+    'token': 'YOUR_CF_API_TOKEN',
+}))
 ```
 
 ### Groq
 
-- [Get API KEY](https://console.groq.com/keys)
-- [Supported Models](https://console.groq.com/docs/models)
+`vendor` is `groq`
 
-```python
-from openai import OpenAI
+`api_key` can set by `GROQ_API_KEY` or pass it directly [Get API KEY](https://console.groq.com/keys)
 
-client = OpenAI(
-    api_key='YOUR_GROQ_API_KEY',
-    base_url='https://bunny-llm.deno.dev/v1/',
-)
-
-model_name = 'groq:gemma-7b-it'
-```
+`model` can refer to [Supported Models](https://console.groq.com/docs/models)
 
 ## Deploy
 

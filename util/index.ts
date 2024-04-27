@@ -189,7 +189,9 @@ export function createOpenAICompact(name = "openai", host = "api.openai.com", pa
         }
         const url = new URL(req.url);
         url.host = host;
-        url.pathname = pathPrefix + url.pathname.substring(name.length + 1);
+        if (url.pathname.startsWith(`/${name}/`)) {
+            url.pathname = pathPrefix + url.pathname.substring(name.length + 1);
+        }
         return await fetch(new Request(url.toString(), {
             headers: req.headers,
             method: req.method,

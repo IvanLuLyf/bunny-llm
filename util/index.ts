@@ -173,7 +173,7 @@ export async function tempImgResponse(file) {
     const kv = await Deno.openKv();
     return new Response(new ReadableStream({
         start(controller) {
-            kv.get(file).then((buffer) => {
+            kv.get(["image", file]).then((buffer) => {
                 controller.enqueue(buffer);
                 controller.close();
             });
@@ -195,7 +195,7 @@ export function imageResponse(
                         return blob.arrayBuffer();
                     }).then((buffer) => {
                         const file = `/${generateUUID()}.png`;
-                        return kv.set(file, new Uint8Array(buffer), {expireIn: 300000});
+                        return kv.set(["image", file], new Uint8Array(buffer), {expireIn: 300000});
                     }).then(() => {
                         controller.enqueue(encoder.encode(JSON.stringify({
                             created: Date.now(),

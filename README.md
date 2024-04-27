@@ -13,9 +13,10 @@ client = OpenAI(
     api_key='EMPTY',
     base_url='https://bunny-llm.deno.dev/v1/',
 )
+model_name = 'gpt-3.5-turbo'
 
 res = client.chat.completions.create(
-    model='gpt-3.5-turbo',
+    model=model_name,
     messages=[
         {'role': 'user', 'content': 'Who are you?'}
     ],
@@ -41,8 +42,10 @@ client = OpenAI(
         'account': 'YOUR_ACCOUNT_ID',
         'token': 'YOUR_API_TOKEN',
     })),
-    base_url='https://bunny-llm.deno.dev/cloudflare/v1/',
+    base_url='https://bunny-llm.deno.dev/v1/',
 )
+
+model_name = 'cloudflare:@cf/qwen/qwen1.5-0.5b-chat'
 ```
 
 ### Groq
@@ -55,8 +58,10 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key='YOUR_GROQ_API_KEY',
-    base_url='https://bunny-llm.deno.dev/groq/v1/',
+    base_url='https://bunny-llm.deno.dev/v1/',
 )
+
+model_name = 'groq:gemma-7b-it'
 ```
 
 ## Deploy

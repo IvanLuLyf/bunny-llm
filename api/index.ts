@@ -1,7 +1,7 @@
 import {optionsResponse} from "../util/index.ts";
 import free from "./freeGPT.ts";
 import cloudflare from "./cloudflare.ts";
-import {BUNNY_API_TOKEN, COMPAT_MAPPER} from "../config/compatMapper.ts";
+import {BUNNY_API_TOKEN, COMPAT_MAPPER} from "../config/index.ts";
 
 const RUNNERS = {
     free,

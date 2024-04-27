@@ -1,4 +1,4 @@
-import {COMPAT_MAPPER} from "./config/compatMapper.ts";
+import {COMPAT_MAPPER} from "./config/index.ts";
 import {createOpenAICompact, htmlResponse, optionsResponse} from "./util/index.ts";
 import index from "./api/index.ts"
 import freeGPT from "./api/freeGPT.ts";

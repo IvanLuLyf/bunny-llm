@@ -1,4 +1,4 @@
-import {BUNNY_API_TOKEN} from "../config/compatMapper.ts";
+import {BUNNY_API_TOKEN} from "../config/index.ts";
 import {baseResponse, fakeToken, imageResponse, jsonResponse, optionsResponse, replyResponse} from "../util/index.ts";
 
 const CF_ACCOUNT_ID = Deno.env.get("CF_ACCOUNT_ID");

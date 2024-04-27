@@ -6,3 +6,4 @@ export const COMPAT_MAPPER = {
 }
 
 export const BUNNY_API_TOKEN = Deno.env.get("BUNNY_API_TOKEN");
+export const BUNNY_IMAGE_PREFIX = Deno.env.get("BUNNY_IMAGE_PREFIX");

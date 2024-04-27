@@ -1,3 +1,5 @@
+import {BUNNY_IMAGE_PREFIX} from "../config/index.ts";
+
 export function makeReply({model = "bunny", id = "bunny-", created = 0} = {}) {
     return {
         chunk: (content) => ({
@@ -163,18 +165,33 @@ export function imageResponse(
 ) {
     return new Response(new ReadableStream({
         start(controller) {
-            const encoder = new TextEncoder();
-            fetcher().then((blob) => {
-                const reader = new FileReader();
-                reader.addEventListener('loadend', () => {
+            if (BUNNY_IMAGE_PREFIX) {
+                const encoder = new TextEncoder();
+                fetcher().then((blob) => {
+                    const reader = new FileReader();
+                    reader.addEventListener('loadend', () => {
+                        controller.enqueue(encoder.encode(JSON.stringify({
+                            created: Date.now(),
+                            data: [{url: reader.result}],
+                        })));
+                        controller.close();
+                    });
+                    reader.readAsDataURL(blob);
+                });
+            } else {
+                const file = Deno.makeTempFile({prefix: "image_"});
+                fetcher().then((blob) => {
+                    return blob.arrayBuffer();
+                }).then((buffer) => {
+                    return Deno.writeFile(file, buffer);
+                }).then(() => {
                     controller.enqueue(encoder.encode(JSON.stringify({
                         created: Date.now(),
-                        data: [{url: reader.result}],
+                        data: [{url: `${BUNNY_IMAGE_PREFIX}${file}`}],
                     })));
                     controller.close();
                 });
-                reader.readAsDataURL(blob);
-            });
+            }
         }
     }), {
         "Access-Control-Allow-Origin": "*",

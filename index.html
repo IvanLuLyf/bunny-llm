@@ -19,14 +19,27 @@
 
         #form_query {
             display: grid;
-            grid-template-columns: 1fr 75px;
             gap: 16px;
             width: 100%;
             max-width: 600px;
             margin: 48px auto 0;
         }
 
-        input {
+        .area-setting {
+            display: grid;
+            gap: 16px;
+            border: 1px solid #ccc;
+            padding: 16px;
+            border-radius: 4px;
+        }
+
+        .area-row {
+            display: grid;
+            grid-template-columns: 1fr 75px;
+            gap: 16px;
+        }
+
+        .input {
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -72,43 +85,118 @@
 <div id="app">
     <h1>Bunny LLM</h1>
     <form id="form_query">
-        <label>
-            <input name="content" placeholder="" value=""/>
-        </label>
-        <button name="btn" type="submit" class="btn">Send</button>
+        <details>
+            <summary>Setting</summary>
+            <div class="area-setting">
+                <div class="area-row">
+                    <label>
+                        <input id="token" name="token" class="input" placeholder="Token"/>
+                    </label>
+                    <button id="btn_set" type="button" class="btn">Set</button>
+                </div>
+                <label>
+                    <select name="model" class="input">
+                        <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
+                    </select>
+                </label>
+                <label>
+                    <select name="type" class="input">
+                        <option value="text" selected>Text</option>
+                    </select>
+                </label>
+            </div>
+        </details>
+        <div class="area-row">
+            <label>
+                <input name="content" class="input" placeholder="Prompt" value=""/>
+            </label>
+            <button name="btn" type="submit" class="btn">Send</button>
+        </div>
     </form>
     <div id="result"></div>
 </div>
 <script>
     (function () {
+        const TYPE_LIST = ["Text", "Image"];
+        const MODEL_LIST = [
+            "openai:gpt-3.5-turbo",
+            "openai:dall-e-2",
+        ];
+        let token = '';
         const form = document.getElementById('form_query');
         const btn = form.elements.btn;
         const areaResult = document.getElementById('result');
+        const btnSet = document.getElementById('btn_set');
         form.addEventListener('submit', (ev) => {
             ev.preventDefault();
             const el = form.elements;
             btn.disabled = true;
             let tm = 0;
             const content = el.content.value || '';
+            const type = el.type.value || 'Text';
+            const model = el.model.value;
             if (!content) return;
             areaResult.innerHTML = '';
             const id = setInterval(() => {
                 btn.innerText = '....'.substring(3 - (++tm) % 3);
-            }, 300)
-            requestLLM('./v1/chat/completions', {
-                messages: [{role: "user", content}],
-                stream: true,
-            }, (m) => {
-                areaResult.innerText += (m?.choices?.[0]?.delta?.content || '')
-            }, () => {
+            }, 300);
+            const finished = () => {
                 btn.disabled = false;
                 clearInterval(id);
                 btn.innerText = 'Send';
-            });
+            };
+            if (type === "Image") {
+                fetchData('./v1/images/generations', {
+                    model,
+                    prompt: content,
+                }).then((res) => {
+                    areaResult.innerHTML = `<img src="${res.data[0].url}" alt="Result"/>`
+                    finished();
+                });
+            } else {
+                requestLLM('./v1/chat/completions', {
+                    model,
+                    messages: [{role: "user", content}],
+                    stream: true,
+                }, (m) => {
+                    areaResult.innerText += (m?.choices?.[0]?.delta?.content || '')
+                }, () => {
+                    finished()
+                });
+            }
         });
+
+        btnSet.addEventListener('click', () => {
+            const el = form.elements;
+            if (el.token.value) {
+                localStorage['bunny_api_token'] = el.token.value;
+                loadTokenConfig();
+            }
+        });
+
+        function loadTokenConfig() {
+            const el = form.elements;
+            token = localStorage['bunny_api_token'] || '';
+            el.token.value = token;
+            el.model.innerHTML = `${TYPE_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
+            el.type.innerHTML = `${MODEL_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
+        }
+
         const NOOP = () => undefined;
 
-        window.fakeToken = (o) => encodeURIComponent(JSON.stringify(o));
+        function fetchData(url, data) {
+            const headers = {
+                'Content-Type': 'application/json',
+            }
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            return fetch(url, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(data),
+            }).then((res) => res.json());
+        }
 
         function requestLLM(url, body, callback = NOOP, onFinish = NOOP) {
             const xhr = new XMLHttpRequest();
@@ -135,6 +223,7 @@
             };
             xhr.open('POST', url, true);
             xhr.setRequestHeader('Content-Type', 'application/json');
+            if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
             xhr.onprogress = function () {
                 const response = xhr.responseText.substring(last);
                 last = xhr.responseText.length;
@@ -144,6 +233,8 @@
             xhr.responseType = 'text';
             xhr.send(JSON.stringify(body));
         }
+
+        loadTokenConfig();
     })();
 </script>
 </body>

@@ -1,16 +1,11 @@
 import {optionsResponse} from "../util/index.ts";
 import free from "./freeGPT.ts";
-import openai from "./openai.ts";
 import cloudflare from "./cloudflare.ts";
-import groq from "./groq.ts";
-import kimi from "./kimi.ts";
+import {COMPAT_MAPPER} from "../config/compatMapper.ts";
 
 const RUNNERS = {
     free,
-    openai,
     cloudflare,
-    groq,
-    kimi,
 }
 export default async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -26,14 +21,26 @@ export default async (req: Request) => {
         mod = rawModel.substring(0, pos).toLowerCase();
         model = rawModel.substring(pos + 1);
     }
+    const body = JSON.stringify({
+        ...rest,
+        model,
+    });
+    if (mod in COMPAT_MAPPER) {
+        const config = COMPAT_MAPPER[mod];
+        const url = new URL(req.url);
+        url.host = config.host;
+        if (config.prefix) url.pathname = config.prefix + url.pathname;
+        return await fetch(new Request(url.toString(), {
+            headers: req.headers,
+            method: req.method,
+            body,
+            redirect: "follow",
+        }));
+    }
     const runner = RUNNERS[mod] || RUNNERS.free;
-    const request = new Request(req.url, {
+    return await runner(new Request(req.url, {
         headers: req.headers,
         method: req.method,
-        body: JSON.stringify({
-            ...rest,
-            model,
-        }),
-    });
-    return await runner(request);
+        body,
+    }));
 }

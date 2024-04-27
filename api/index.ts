@@ -20,9 +20,7 @@ export default async (req: Request) => {
         mod = rawModel.substring(0, pos).toLowerCase();
         model = rawModel.substring(pos + 1);
     }
-    const headers = {
-        ...req.headers,
-    }
+    const headers = new Headers(req.headers);
     const body = JSON.stringify({
         ...rest,
         model,
@@ -36,7 +34,7 @@ export default async (req: Request) => {
             const auth = req.headers.get("Authorization");
             const token = auth.startsWith("Bearer ") ? auth.substring(7) : auth;
             if (token === BUNNY_API_TOKEN) {
-                headers["Authorization"] = `Bearer ${config.api_key}`;
+                headers.set("Authorization", `Bearer ${config.api_key}`);
             }
         }
         return await fetch(new Request(url.toString(), {headers, method, body, redirect: "follow"}));

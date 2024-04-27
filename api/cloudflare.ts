@@ -20,10 +20,8 @@ export default async (req: Request) => {
     const url = new URL(req.url);
     if (url.pathname.endsWith("/v1/chat/completions")) {
         if (!req.headers.has("Authorization")) {
-            console.log({err: "Token is empty."});
             return jsonResponse({err: "Token is empty."});
         }
-        console.log(req.headers.get("Authorization"));
         const auth = makeToken(req.headers.get("Authorization"));
         const body = await req.json();
         const model = body.model;

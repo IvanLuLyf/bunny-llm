@@ -182,8 +182,8 @@
             token = localStorage['bunny_api_token'] || '';
             if (token) {
                 el.token.value = token;
-                el.model.innerHTML = `${TYPE_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
-                el.type.innerHTML = `${MODEL_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
+                el.type.innerHTML = `${TYPE_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
+                el.model.innerHTML = `${MODEL_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
             }
         }
 

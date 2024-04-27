@@ -166,17 +166,18 @@ export function imageResponse(
     return new Response(new ReadableStream({
         start(controller) {
             if (BUNNY_IMAGE_PREFIX) {
-                const file = Deno.makeTempFile({prefix: "image_"});
-                fetcher().then((blob) => {
-                    return blob.arrayBuffer();
-                }).then((buffer) => {
-                    return Deno.writeFile(file, buffer);
-                }).then(() => {
-                    controller.enqueue(encoder.encode(JSON.stringify({
-                        created: Date.now(),
-                        data: [{url: `${BUNNY_IMAGE_PREFIX}${file}`}],
-                    })));
-                    controller.close();
+                Deno.makeTempFile({prefix: "image_"}).then((file) => {
+                    fetcher().then((blob) => {
+                        return blob.arrayBuffer();
+                    }).then((buffer) => {
+                        return Deno.writeFile(file, buffer);
+                    }).then(() => {
+                        controller.enqueue(encoder.encode(JSON.stringify({
+                            created: Date.now(),
+                            data: [{url: `${BUNNY_IMAGE_PREFIX}${file}`}],
+                        })));
+                        controller.close();
+                    });
                 });
             } else {
                 const encoder = new TextEncoder();

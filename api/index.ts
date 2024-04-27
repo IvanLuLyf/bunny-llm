@@ -42,5 +42,6 @@ export default async (req: Request) => {
         return await fetch(new Request(url.toString(), {headers, method, body, redirect: "follow"}));
     }
     const runner = RUNNERS[mod] || RUNNERS.free;
+    console.log("BEFORE", {headers, method, body})
     return await runner(new Request(req.url, {headers, method, body}));
 }

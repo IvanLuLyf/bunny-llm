@@ -48,7 +48,8 @@ export default async (req: Request) => {
                 }),
             }).then((res) => res.body.getReader());
         }, (m) => {
-            return m?.output?.choices?.[0]?.message?.content || "";
+            const o = m?.output;
+            return o?.choices?.[0]?.message?.content || o?.text || "";
         });
     }
 }

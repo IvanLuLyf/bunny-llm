@@ -37,6 +37,8 @@ export default async (req: Request) => {
             return fetch("https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation", {
                 method: "POST",
                 headers: {
+                    'Accept': 'text/event-stream',
+                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                     'X-DashScope-SSE': 'enable',
                 },
@@ -54,10 +56,10 @@ export default async (req: Request) => {
                         incremental_output: true,
                     },
                 }),
-            }).then((res) => res.body.getReader()).catch((e)=>{console.log(e)});
+            }).then((res) => res.body.getReader());
         }, (m) => {
             const o = m?.output;
-            console.log(m);
+            console.log(o);
             return o?.choices?.[0]?.message?.content || o?.text || "";
         });
     }

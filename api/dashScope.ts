@@ -51,7 +51,6 @@ export default async (req: Request) => {
                 console.log(e)
             });
         }, (m) => {
-            console.log(m);
             const o = m?.output;
             return o?.choices?.[0]?.message?.content || o?.text || "";
         });

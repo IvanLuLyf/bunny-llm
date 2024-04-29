@@ -23,8 +23,7 @@ export default async (req: Request) => {
         }
         const token = makeToken(req.headers.get("Authorization"));
         const body = await req.json();
-        const model = body.model;
-        const messages = body.messages;
+        const {model, messages, top_k, temperature, stop} = body;
         return replyResponse(model, body.stream, () => {
             return fetch("https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation", {
                 method: "POST",
@@ -39,6 +38,10 @@ export default async (req: Request) => {
                         messages,
                     },
                     parameters: {
+                        top_k,
+                        temperature,
+                        stop,
+                        result_format: 'message',
                         incremental_output: true,
                     },
                 }),

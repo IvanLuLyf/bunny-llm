@@ -52,7 +52,7 @@ export default async (req: Request) => {
                         top_k,
                         temperature,
                         stop,
-                        result_format,
+                        result_format: "message",
                         incremental_output: true,
                     },
                 }),

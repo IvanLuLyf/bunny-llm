@@ -58,6 +58,7 @@ export default async (req: Request) => {
             }).then((res) => res.body.getReader());
         }, (m) => {
             const o = m?.output;
+            console.log(o);
             return o?.choices?.[0]?.message?.content || o?.text || "";
         });
     }

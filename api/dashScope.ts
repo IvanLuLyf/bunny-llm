@@ -37,7 +37,6 @@ export default async (req: Request) => {
             return fetch("https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation", {
                 method: "POST",
                 headers: {
-                    'Content-Type': 'text/event-stream',
                     'Authorization': `Bearer ${token}`,
                     'X-DashScope-SSE': 'enable',
                 },

@@ -56,10 +56,12 @@ export default async (req: Request) => {
                         incremental_output: true,
                     },
                 }),
-            }).then((res) => res.body.getReader());
+            }).then((res) => res.body.getReader()).catch((e) => {
+                console.log(e)
+            });
         }, (m) => {
+            console.log(m);
             const o = m?.output;
-            console.log(o);
             return o?.choices?.[0]?.message?.content || o?.text || "";
         });
     }

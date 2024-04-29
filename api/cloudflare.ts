@@ -24,8 +24,7 @@ export default async (req: Request) => {
         }
         const auth = makeToken(req.headers.get("Authorization"));
         const body = await req.json();
-        const model = body.model;
-        const messages = body.messages;
+        const {model, messages, max_tokens} = body;
         return replyResponse(model, body.stream, () => {
             return fetch(`https://api.cloudflare.com/client/v4/accounts/${auth.account}/ai/run/${model}`, {
                 method: "POST",
@@ -34,6 +33,7 @@ export default async (req: Request) => {
                 },
                 body: JSON.stringify({
                     messages,
+                    max_tokens,
                     stream: true,
                 }),
             }).then((res) => res.body.getReader());

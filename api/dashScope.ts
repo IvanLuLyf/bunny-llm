@@ -55,7 +55,7 @@ export default async (req: Request) => {
                         incremental_output: true,
                     },
                 }),
-            }).then((res) => res.body.getReader());
+            }).then((res) => res.body.getReader()).catch((e)=>{console.log(e)});
         }, (m) => {
             const o = m?.output;
             console.log(o);

@@ -3,6 +3,14 @@ import {jsonResponse, optionsResponse, replyResponse} from "../util/index.ts";
 
 const DASH_SCOPE_API_KEY = Deno.env.get("DASH" + "SCOPE_API_KEY");
 
+const LEGACY_MODELS = new Set([
+    "yi-6b-chat",
+    "yi-34b-chat",
+    "internlm-7b-chat",
+    "deepseek-7b-chat",
+    "aquilachat-7b",
+]);
+
 function makeToken(auth): string {
     const token = auth.startsWith("Bearer ") ? auth.substring(7) : auth;
     if (token === BUNNY_API_TOKEN) {
@@ -25,6 +33,7 @@ export default async (req: Request) => {
         const body = await req.json();
         const {model, messages, max_tokens, top_k, temperature, stop} = body;
         return replyResponse(model, body.stream, () => {
+            const result_format = LEGACY_MODELS.has(model.toLowerCase()) ? "text" : "message";
             return fetch("https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation", {
                 method: "POST",
                 headers: {
@@ -42,7 +51,7 @@ export default async (req: Request) => {
                         top_k,
                         temperature,
                         stop,
-                        result_format: 'message',
+                        result_format,
                         incremental_output: true,
                     },
                 }),

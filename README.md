@@ -40,7 +40,7 @@ print(res.choices[0].message.content)
 
 ### CloudFlare Workers AI
 
-`vender` is `cloudflare`
+`vendor` is `cf` or `cloudflare`
 
 `model` can refer to [Supported Models](https://developers.cloudflare.com/workers-ai/models/)
 
@@ -64,6 +64,15 @@ api_key=urllib.parse.quote(json.dumps({
     'token': 'YOUR_CF_API_TOKEN',
 }))
 ```
+
+### DashScope
+
+`vendor` is `ds` or `dash_scope`
+
+`model` can refer to [Supported Models](https://help.aliyun.com/zh/dashscope/developer-reference/model-square/)
+
+`api_key` can set by `DASHSCOPE_API_KEY` or pass it directly [Get API KEY](https://dashscope.console.aliyun.com/apiKey)
+
 
 ### Groq
 

@@ -117,18 +117,22 @@ export function replyResponse(
     const reply = makeReply({model, id, created: Date.now()});
     return new Response(new ReadableStream({
         start(controller) {
+            const parse = (line: string) => {
+                try {
+                    const text = converter(JSON.parse(line));
+                    if (stream) {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify(reply.chunk(text))}\n\n`));
+                    } else {
+                        ctx.text += text;
+                    }
+                } catch (e) {
+                }
+            };
             const processLine = (x: string) => {
                 if (x.startsWith("data:")) {
-                    const line = x.substring(5).trim();
-                    try {
-                        const text = converter(JSON.parse(line));
-                        if (stream) {
-                            controller.enqueue(encoder.encode(`data: ${JSON.stringify(reply.chunk(text))}\n\n`));
-                        } else {
-                            ctx.text += text;
-                        }
-                    } catch (e) {
-                    }
+                    parse(x.substring(5).trim());
+                } else if (x.startsWith("{")) {
+                    parse(x);
                 }
             };
             fetcher().then((reader) => {

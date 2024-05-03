@@ -35,8 +35,15 @@
 
         .area-row {
             display: grid;
-            grid-template-columns: 1fr 75px;
             gap: 16px;
+        }
+
+        .area-row.area-token-row {
+            grid-template-columns: 90px 1fr 75px;
+        }
+
+        .area-row.area-model-row {
+            grid-template-columns: 90px 1fr;
         }
 
         .input {
@@ -93,21 +100,30 @@
         <details>
             <summary>Setting</summary>
             <div class="area-setting">
-                <div class="area-row">
+                <div class="area-row area-token-row">
+                    <label>
+                        <select name="token_type" class="input">
+                            <option value="bunny" selected>Bunny</option>
+                            <option value="openai">OpenAI</option>
+                            <option value="ds">DashScope</option>
+                            <option value="cf">CloudFlare</option>
+                            <option value="groq">Groq</option>
+                        </select>
+                    </label>
                     <label>
                         <input id="token" name="token" class="input" placeholder="Token"/>
                     </label>
                     <button id="btn_set" type="button" class="btn">Set</button>
                 </div>
-                <div class="area-row">
-                    <label>
-                        <select name="model" class="input">
-                            <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
-                        </select>
-                    </label>
+                <div class="area-row area-model-row">
                     <label>
                         <select name="type" class="input">
                             <option value="text" selected>Text</option>
+                        </select>
+                    </label>
+                    <label>
+                        <select name="model" class="input">
+                            <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
                         </select>
                     </label>
                 </div>
@@ -125,13 +141,34 @@
 <script>
     (function () {
         const TYPE_LIST = ["Text", "Image"];
-        const MODEL_LIST = [
-            "openai:gpt-3.5-turbo",
-            "openai:dall-e-2",
-            "cloudflare:@cf/qwen/qwen1.5-0.5b-chat",
-            "cloudflare:@cf/bytedance/stable-diffusion-xl-lightning",
-            "groq:gemma-7b-it",
-        ];
+        const MODELS = {
+            Text: [
+                "openai:gpt-3.5-turbo",
+
+                "cf:@cf/microsoft/phi-2",
+                "cf:@cf/qwen/qwen1.5-0.5b-chat",
+                "cf:@cf/qwen/qwen1.5-1.8b-chat",
+                "cf:@cf/meta/llama-3-8b-instruct",
+                "cf:@cf/meta/llama-2-7b-chat-fp16",
+                "cf:@hf/google/gemma-7b-it",
+
+                "ds:qwen-turbo",
+                "ds:qwen-plus",
+                "ds:qwen-max",
+                "ds:llama3-8b-instruct",
+                "ds:llama3-70b-instruct",
+
+                "groq:gemma-7b-it",
+                "groq:llama3-8b-8192",
+                "groq:llama3-70b-8192",
+                "groq:mixtral-8x7b-32768",
+            ],
+            Image: [
+                "openai:dall-e-2",
+                "cf:@cf/bytedance/stable-diffusion-xl-lightning",
+            ],
+        }
+        const BASE_URL = location.hostname === 'localhost' ? 'https://bunny-llm.deno.dev/v1/' : './v1/';
         let token = '';
         const form = document.getElementById('form_query');
         const btn = form.elements.btn;
@@ -156,7 +193,7 @@
                 btn.innerText = 'Send';
             };
             if (type === "Image") {
-                fetchData('./v1/images/generations', {
+                fetchData(`${BASE_URL}images/generations`, {
                     model,
                     prompt: content,
                 }).then((res) => {
@@ -164,7 +201,7 @@
                     finished();
                 });
             } else {
-                requestLLM('./v1/chat/completions', {
+                requestLLM(`${BASE_URL}chat/completions`, {
                     model,
                     messages: [{role: "user", content}],
                     stream: true,
@@ -187,10 +224,20 @@
         function loadTokenConfig() {
             const el = form.elements;
             token = localStorage['bunny_api_token'] || '';
+            const reload = () => {
+                const tt = el.token_type.value;
+                let models = MODELS[el.type.value || 'Text'];
+                if (tt !== "bunny") {
+                    models = models.filter((x) => x.startsWith(`${tt}:`));
+                }
+                el.model.innerHTML = `${models.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
+            }
             if (token) {
                 el.token.value = token;
                 el.type.innerHTML = `${TYPE_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
-                el.model.innerHTML = `${MODEL_LIST.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
+                el.token_type.addEventListener('change', () => reload());
+                el.type.addEventListener('change', () => reload());
+                reload();
             }
         }
 

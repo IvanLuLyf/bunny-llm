@@ -1,5 +1,8 @@
 import {BUNNY_IMAGE_PREFIX} from "../config/index.ts";
 
+const SUPPORT_CACHES = !!window.caches;
+const CACHE_IMAGE = "images";
+
 export function generateUUID(): string {
     const randomBytes = new Uint8Array(16);
     crypto.getRandomValues(randomBytes);
@@ -78,8 +81,12 @@ export function htmlResponse(html) {
     });
 }
 
+export function notFoundResponse() {
+    return new Response("404 Not Found", {status: 404});
+}
+
 export function baseResponse() {
-    return jsonResponse({ver: "20240425", poweredBy: "BunnyLLM"});
+    return jsonResponse({ver: "20240506", poweredBy: "BunnyLLM"});
 }
 
 export function optionsResponse() {
@@ -173,13 +180,29 @@ export function replyResponse(
     });
 }
 
+const bunnyCache = new Map<string, () => Promise<Blob>>();
+
 export async function tempImgResponse(req: Request) {
-    const cache = await caches.open("images");
-    const cached = await cache.match(req);
-    return req ? cached : new Response("", {
-        status: 404,
-        statusText: "Not Found",
-    });
+    if (SUPPORT_CACHES) {
+        const cache = await caches.open(CACHE_IMAGE);
+        const cached = await cache.match(req);
+        return cached ? cached : notFoundResponse();
+    }
+    const url = new URL(req.url);
+    const file = url.pathname.split("/")[2];
+    if (file && bunnyCache.has(file)) {
+        const fetcher = bunnyCache.get(file);
+        const blob = await fetcher();
+        bunnyCache.delete(file);
+        return new Response(blob, {
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Content-Type": "image/png",
+                "Cache-Control": "public, max-age=1800",
+            },
+        });
+    }
+    return notFoundResponse();
 }
 
 export function imageResponse(
@@ -204,10 +227,11 @@ export function imageResponse(
                     reader.readAsDataURL(blob);
                 });
             } else {
-                fetcher().then((blob) => {
-                    if (window.caches) {
-                        const url = `${BUNNY_IMAGE_PREFIX}/${generateUUID()}.png`;
-                        caches.open("images").then((cache) => {
+                const filename = `${generateUUID()}.png`;
+                const url = `${BUNNY_IMAGE_PREFIX}/${filename}`;
+                if (SUPPORT_CACHES) {
+                    fetcher().then((blob) => {
+                        caches.open(CACHE_IMAGE).then((cache) => {
                             return cache.put(new Request(url), new Response(blob));
                         }).then(() => {
                             controller.enqueue(encoder.encode(JSON.stringify({
@@ -217,18 +241,15 @@ export function imageResponse(
                         }).finally(() => {
                             controller.close()
                         });
-                    } else {
-                        const reader = new FileReader();
-                        reader.addEventListener('loadend', () => {
-                            controller.enqueue(encoder.encode(JSON.stringify({
-                                created: Date.now(),
-                                data: [{url: reader.result}],
-                            })));
-                            controller.close();
-                        });
-                        reader.readAsDataURL(blob);
-                    }
-                });
+                    });
+                } else {
+                    bunnyCache.set(filename, fetcher);
+                    controller.enqueue(encoder.encode(JSON.stringify({
+                        created: Date.now(),
+                        data: [{url}],
+                    })));
+                    controller.close()
+                }
             }
         }
     }), {

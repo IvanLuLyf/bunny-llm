@@ -211,8 +211,8 @@ export function imageResponse(
 ) {
     return new Response(new ReadableStream({
         start(controller) {
+            const encoder = new TextEncoder();
             if (response_format === "b64_json") {
-                const encoder = new TextEncoder();
                 fetcher().then((blob) => {
                     const reader = new FileReader();
                     reader.addEventListener('loadend', () => {

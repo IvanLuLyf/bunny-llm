@@ -180,8 +180,15 @@ export function replyResponse(
     });
 }
 
-const requestCache = new Map<string, () => Promise<Blob>>();
-const responseCache = new Map<string, { blob: Blob, expired: number }>();
+const imageCache = new Map<string, { blob: Blob, expired: number }>();
+const cleanCache = () => {
+    const now = Date.now();
+    for (const [k, v] of imageCache.entries()) {
+        if (v.expired < now) {
+            imageCache.delete(k);
+        }
+    }
+}
 
 export async function tempImgResponse(req: Request) {
     if (SUPPORT_CACHES) {
@@ -191,29 +198,24 @@ export async function tempImgResponse(req: Request) {
     }
     const url = new URL(req.url);
     const file = url.pathname.split("/")[2];
-    if (file) {
-        let c: { blob: Blob, expired: number };
-        if (responseCache.has(file)) {
-            c = responseCache.get(file);
-            if (c.expired < Date.now()) {
-                responseCache.delete(file)
-                return notFoundResponse();
-            }
-        } else {
-            const fetcher = requestCache.get(file);
-            const blob = await fetcher();
-            requestCache.delete(file);
-            c = {
-                expired: Date.now() + 300000,
-                blob
-            }
-            responseCache.set(file, c);
+    const ifNoneMatch = req.headers.get("If-None-Match");
+    if (ifNoneMatch === file) {
+        return new Response(null, {
+            status: 304,
+        });
+    }
+    if (file && imageCache.has(file)) {
+        const c = imageCache.get(file);
+        if (c.expired < Date.now()) {
+            imageCache.delete(file)
+            return notFoundResponse();
         }
         return new Response(c.blob, {
             headers: {
                 "Access-Control-Allow-Origin": "*",
                 "Content-Type": "image/png",
                 "Cache-Control": "public, max-age=1800",
+                "Etag": file,
             },
         });
     }
@@ -244,8 +246,8 @@ export function imageResponse(
             } else {
                 const filename = `${generateUUID()}.png`;
                 const url = `${BUNNY_IMAGE_PREFIX}/${filename}`;
-                if (SUPPORT_CACHES) {
-                    fetcher().then((blob) => {
+                fetcher().then((blob) => {
+                    if (SUPPORT_CACHES) {
                         caches.open(CACHE_IMAGE).then((cache) => {
                             return cache.put(new Request(url), new Response(blob));
                         }).then(() => {
@@ -256,15 +258,19 @@ export function imageResponse(
                         }).finally(() => {
                             controller.close()
                         });
-                    });
-                } else {
-                    requestCache.set(filename, fetcher);
-                    controller.enqueue(encoder.encode(JSON.stringify({
-                        created: Date.now(),
-                        data: [{url}],
-                    })));
-                    controller.close()
-                }
+                    } else {
+                        cleanCache();
+                        imageCache.set(filename, {
+                            expired: Date.now() + 180000,
+                            blob
+                        });
+                        controller.enqueue(encoder.encode(JSON.stringify({
+                            created: Date.now(),
+                            data: [{url}],
+                        })));
+                        controller.close()
+                    }
+                });
             }
         }
     }), {

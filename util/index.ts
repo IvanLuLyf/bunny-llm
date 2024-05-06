@@ -181,7 +181,7 @@ export function replyResponse(
 }
 
 const requestCache = new Map<string, () => Promise<Blob>>();
-const responseCache = new Map<string, { response: Response, expired: number }>();
+const responseCache = new Map<string, { blob: Blob, expired: number }>();
 
 export async function tempImgResponse(req: Request) {
     if (SUPPORT_CACHES) {
@@ -192,29 +192,30 @@ export async function tempImgResponse(req: Request) {
     const url = new URL(req.url);
     const file = url.pathname.split("/")[2];
     if (file) {
+        let c: { blob: Blob, expired: number };
         if (responseCache.has(file)) {
-            const c = responseCache.get(file);
+            c = responseCache.get(file);
             if (c.expired < Date.now()) {
                 responseCache.delete(file)
                 return notFoundResponse();
             }
-            return c.response.clone();
+        } else {
+            const fetcher = requestCache.get(file);
+            const blob = await fetcher();
+            requestCache.delete(file);
+            c = {
+                expired: Date.now() + 300000,
+                blob
+            }
+            responseCache.set(file, c);
         }
-        const fetcher = requestCache.get(file);
-        const blob = await fetcher();
-        requestCache.delete(file);
-        const c = {
-            expired: Date.now() + 1800000,
-            response: new Response(blob, {
-                headers: {
-                    "Access-Control-Allow-Origin": "*",
-                    "Content-Type": "image/png",
-                    "Cache-Control": "public, max-age=1800",
-                },
-            })
-        }
-        responseCache.set(file, c);
-        return c.response;
+        return new Response(c.blob, {
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Content-Type": "image/png",
+                "Cache-Control": "public, max-age=1800",
+            },
+        });
     }
     return notFoundResponse();
 }

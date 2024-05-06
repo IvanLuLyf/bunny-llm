@@ -45,15 +45,14 @@ export default async (req: Request) => {
             return jsonResponse({err: "Token is empty."});
         }
         const auth = makeToken(req.headers.get("Authorization"));
-        const body = await req.json();
-        const model = body.model;
-        return imageResponse(() => fetch(`https://api.cloudflare.com/client/v4/accounts/${auth.account}/ai/run/${model}`, {
+        const {model, prompt, response_format} = await req.json();
+        return imageResponse(response_format, () => fetch(`https://api.cloudflare.com/client/v4/accounts/${auth.account}/ai/run/${model}`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${auth.token}`,
             },
             body: JSON.stringify({
-                prompt: body.prompt,
+                prompt,
             }),
         }).then((res) => res.blob()));
     }

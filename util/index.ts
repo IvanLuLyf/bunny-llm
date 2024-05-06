@@ -173,39 +173,33 @@ export function replyResponse(
     });
 }
 
-export async function tempImgResponse(file) {
-    const kv = await Deno.openKv();
-    return new Response(new ReadableStream({
-        start(controller) {
-            kv.get(["image", file]).then((buffer) => {
-                controller.enqueue(buffer);
-                controller.close();
-            });
-        },
-    }), {
-        "Access-Control-Allow-Origin": "*",
-        "Content-Type": "image/png",
-    })
+export async function tempImgResponse(req: Request) {
+    const cache = await caches.open("images");
+    const cached = await cache.match(req);
+    return req ? cached : new Response("", {
+        status: 404,
+        statusText: "Not Found",
+    });
 }
 
 export function imageResponse(
+    response_format,
     fetcher: () => Promise<Blob>,
 ) {
     return new Response(new ReadableStream({
         start(controller) {
-            if (BUNNY_IMAGE_PREFIX) {
-                Deno.openKv().then((kv) => {
-                    fetcher().then((blob) => {
-                        return blob.arrayBuffer();
-                    }).then((buffer) => {
-                        const file = `/${generateUUID()}.png`;
-                        return kv.set(["image", file], new Uint8Array(buffer), {expireIn: 300000});
+            if (response_format === "url") {
+                fetcher().then((blob) => {
+                    const url = `${BUNNY_IMAGE_PREFIX}/${generateUUID()}.png`
+                    caches.open("images").then((cache) => {
+                        return cache.put(new Request(url), new Response(blob));
                     }).then(() => {
                         controller.enqueue(encoder.encode(JSON.stringify({
                             created: Date.now(),
-                            data: [{url: `${BUNNY_IMAGE_PREFIX}${file}`}],
+                            data: [{url}],
                         })));
-                        controller.close();
+                    }).finally(() => {
+                        controller.close()
                     });
                 });
             } else {
@@ -213,9 +207,11 @@ export function imageResponse(
                 fetcher().then((blob) => {
                     const reader = new FileReader();
                     reader.addEventListener('loadend', () => {
+                        const url = reader.result;
+                        const b64_json = url.split(",")[1];
                         controller.enqueue(encoder.encode(JSON.stringify({
                             created: Date.now(),
-                            data: [{url: reader.result}],
+                            data: [{url, b64_json}],
                         })));
                         controller.close();
                     });

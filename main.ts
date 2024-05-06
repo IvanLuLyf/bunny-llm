@@ -14,7 +14,7 @@ Deno.serve(async (req: Request) => {
     if (mod === "v1") {
         return await index(req);
     } else if (mod === "image") {
-        return await tempImgResponse(arr[2]);
+        return await tempImgResponse(req);
     } else if (mod === "free") {
         return await freeGPT(req);
     } else if (mod in COMPAT_MAPPER) {

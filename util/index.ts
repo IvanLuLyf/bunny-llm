@@ -198,7 +198,7 @@ export async function tempImgResponse(req: Request) {
                 responseCache.delete(file)
                 return notFoundResponse();
             }
-            return c.response;
+            return c.response.clone();
         }
         const fetcher = requestCache.get(file);
         const blob = await fetcher();

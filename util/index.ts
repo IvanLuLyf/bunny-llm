@@ -188,21 +188,7 @@ export function imageResponse(
 ) {
     return new Response(new ReadableStream({
         start(controller) {
-            if (response_format === "url") {
-                fetcher().then((blob) => {
-                    const url = `${BUNNY_IMAGE_PREFIX}/${generateUUID()}.png`
-                    caches.open("images").then((cache) => {
-                        return cache.put(new Request(url), new Response(blob));
-                    }).then(() => {
-                        controller.enqueue(encoder.encode(JSON.stringify({
-                            created: Date.now(),
-                            data: [{url}],
-                        })));
-                    }).finally(() => {
-                        controller.close()
-                    });
-                });
-            } else {
+            if (response_format === "b64_json") {
                 const encoder = new TextEncoder();
                 fetcher().then((blob) => {
                     const reader = new FileReader();
@@ -211,11 +197,37 @@ export function imageResponse(
                         const b64_json = url.split(",")[1];
                         controller.enqueue(encoder.encode(JSON.stringify({
                             created: Date.now(),
-                            data: [{url, b64_json}],
+                            data: [{b64_json}],
                         })));
                         controller.close();
                     });
                     reader.readAsDataURL(blob);
+                });
+            } else {
+                fetcher().then((blob) => {
+                    if (window.caches) {
+                        const url = `${BUNNY_IMAGE_PREFIX}/${generateUUID()}.png`;
+                        caches.open("images").then((cache) => {
+                            return cache.put(new Request(url), new Response(blob));
+                        }).then(() => {
+                            controller.enqueue(encoder.encode(JSON.stringify({
+                                created: Date.now(),
+                                data: [{url}],
+                            })));
+                        }).finally(() => {
+                            controller.close()
+                        });
+                    } else {
+                        const reader = new FileReader();
+                        reader.addEventListener('loadend', () => {
+                            controller.enqueue(encoder.encode(JSON.stringify({
+                                created: Date.now(),
+                                data: [{url: reader.result}],
+                            })));
+                            controller.close();
+                        });
+                        reader.readAsDataURL(blob);
+                    }
                 });
             }
         }

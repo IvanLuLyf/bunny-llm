@@ -180,7 +180,8 @@ export function replyResponse(
     });
 }
 
-const bunnyCache = new Map<string, () => Promise<Blob>>();
+const requestCache = new Map<string, () => Promise<Blob>>();
+const responseCache = new Map<string, { response: Response, expired: number }>();
 
 export async function tempImgResponse(req: Request) {
     if (SUPPORT_CACHES) {
@@ -190,17 +191,30 @@ export async function tempImgResponse(req: Request) {
     }
     const url = new URL(req.url);
     const file = url.pathname.split("/")[2];
-    if (file && bunnyCache.has(file)) {
-        const fetcher = bunnyCache.get(file);
+    if (file) {
+        if (responseCache.has(file)) {
+            const c = responseCache.get(file);
+            if (c.expired < Date.now()) {
+                responseCache.delete(file)
+                return notFoundResponse();
+            }
+            return c.response;
+        }
+        const fetcher = requestCache.get(file);
         const blob = await fetcher();
-        bunnyCache.delete(file);
-        return new Response(blob, {
-            headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Content-Type": "image/png",
-                "Cache-Control": "public, max-age=1800",
-            },
-        });
+        requestCache.delete(file);
+        const c = {
+            expired: Date.now() + 1800000,
+            response: new Response(blob, {
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Content-Type": "image/png",
+                    "Cache-Control": "public, max-age=1800",
+                },
+            })
+        }
+        responseCache.set(file, c);
+        return c.response;
     }
     return notFoundResponse();
 }
@@ -243,7 +257,7 @@ export function imageResponse(
                         });
                     });
                 } else {
-                    bunnyCache.set(filename, fetcher);
+                    requestCache.set(filename, fetcher);
                     controller.enqueue(encoder.encode(JSON.stringify({
                         created: Date.now(),
                         data: [{url}],

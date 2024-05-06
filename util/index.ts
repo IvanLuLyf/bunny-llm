@@ -1,5 +1,3 @@
-import {BUNNY_IMAGE_PREFIX} from "../config/index.ts";
-
 const SUPPORT_CACHES = !!window.caches;
 const CACHE_IMAGE = "images";
 
@@ -223,7 +221,8 @@ export async function tempImgResponse(req: Request) {
 }
 
 export function imageResponse(
-    response_format,
+    response_format: string,
+    hostname: string,
     fetcher: () => Promise<Blob>,
 ) {
     return new Response(new ReadableStream({
@@ -245,7 +244,7 @@ export function imageResponse(
                 });
             } else {
                 const filename = `${generateUUID()}.png`;
-                const url = `${BUNNY_IMAGE_PREFIX}/${filename}`;
+                const url = `${hostname}/image/${filename}`;
                 fetcher().then((blob) => {
                     if (SUPPORT_CACHES) {
                         caches.open(CACHE_IMAGE).then((cache) => {

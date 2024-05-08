@@ -1,5 +1,10 @@
 const SUPPORT_CACHES = !!window.caches;
 const CACHE_IMAGE = "images";
+const COMMON_HEADER = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+}
 
 export function generateUUID(): string {
     const randomBytes = new Uint8Array(16);
@@ -65,7 +70,7 @@ export function makeReply({model = "bunny", id = "bunny-", created = 0} = {}) {
 export function jsonResponse(o) {
     return new Response(JSON.stringify(o), {
         headers: {
-            "Access-Control-Allow-Origin": "*",
+            ...COMMON_HEADER,
             "Content-Type": "application/json;charset=UTF-8",
         },
     });
@@ -74,6 +79,7 @@ export function jsonResponse(o) {
 export function htmlResponse(html) {
     return new Response(html, {
         headers: new Headers({
+            ...COMMON_HEADER,
             "Content-Type": "text/html;charset=utf-8"
         })
     });
@@ -89,11 +95,7 @@ export function baseResponse() {
 
 export function optionsResponse() {
     return new Response(null, {
-        headers: new Headers({
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        })
+        headers: new Headers(COMMON_HEADER),
     });
 }
 
@@ -167,12 +169,12 @@ export function replyResponse(
         },
     }), {
         headers: stream ? {
-            "Access-Control-Allow-Origin": "*",
+            ...COMMON_HEADER,
             "Content-Type": "text/event-stream;charset=UTF-8",
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
         } : {
-            "Access-Control-Allow-Origin": "*",
+            ...COMMON_HEADER,
             "Content-Type": "application/json;charset=UTF-8",
         },
     });
@@ -273,7 +275,7 @@ export function imageResponse(
             }
         }
     }), {
-        "Access-Control-Allow-Origin": "*",
+        ...COMMON_HEADER,
         "Content-Type": "application/json;charset=UTF-8",
     })
 }

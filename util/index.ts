@@ -2,8 +2,6 @@ const SUPPORT_CACHES = !!window.caches;
 const CACHE_IMAGE = "images";
 const COMMON_HEADER = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
 }
 
 export function generateUUID(): string {
@@ -89,13 +87,19 @@ export function notFoundResponse() {
     return new Response("404 Not Found", {status: 404});
 }
 
-export function baseResponse() {
+export function defaultResponse() {
     return jsonResponse({ver: "20240506", poweredBy: "BunnyLLM"});
 }
 
 export function optionsResponse() {
     return new Response(null, {
-        headers: new Headers(COMMON_HEADER),
+        headers: new Headers({
+            ...COMMON_HEADER,
+            "Access-Control-Allow-Methods": "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Max-Age": 1500
+        }),
+        status: 200,
     });
 }
 

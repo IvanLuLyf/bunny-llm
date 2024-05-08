@@ -279,8 +279,10 @@ export function imageResponse(
             }
         }
     }), {
-        ...COMMON_HEADER,
-        "Content-Type": "application/json;charset=UTF-8",
+        headers: {
+            ...COMMON_HEADER,
+            "Content-Type": "application/json;charset=UTF-8",
+        }
     })
 }
 

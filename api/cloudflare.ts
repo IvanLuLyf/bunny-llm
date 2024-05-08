@@ -1,5 +1,12 @@
 import {BUNNY_API_TOKEN} from "../config/index.ts";
-import {defaultResponse, fakeToken, imageResponse, jsonResponse, optionsResponse, replyResponse} from "../util/index.ts";
+import {
+    defaultResponse,
+    fakeToken,
+    imageResponse,
+    jsonResponse,
+    optionsResponse,
+    replyResponse
+} from "../util/index.ts";
 
 const CF_ACCOUNT_ID = Deno.env.get("CF_ACCOUNT_ID");
 const CF_API_TOKEN = Deno.env.get("CF_API_TOKEN");

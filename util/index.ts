@@ -194,6 +194,21 @@ const cleanCache = () => {
     }
 }
 
+export function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.addEventListener('loadend', () => {
+            const url = reader.result;
+            const b64_json = url.split(",")[1];
+            resolve(b64_json);
+        });
+        reader.addEventListener('error', () => {
+            resolve('');
+        });
+        reader.readAsDataURL(blob);
+    });
+}
+
 export async function tempImgResponse(req: Request) {
     if (SUPPORT_CACHES) {
         const cache = await caches.open(CACHE_IMAGE);
@@ -235,18 +250,12 @@ export function imageResponse(
         start(controller) {
             const encoder = new TextEncoder();
             if (response_format === "b64_json") {
-                fetcher().then((blob) => {
-                    const reader = new FileReader();
-                    reader.addEventListener('loadend', () => {
-                        const url = reader.result;
-                        const b64_json = url.split(",")[1];
-                        controller.enqueue(encoder.encode(JSON.stringify({
-                            created: Date.now(),
-                            data: [{b64_json}],
-                        })));
-                        controller.close();
-                    });
-                    reader.readAsDataURL(blob);
+                fetcher().then((blob) => blobToBase64(blob)).then((b64_json) => {
+                    controller.enqueue(encoder.encode(JSON.stringify({
+                        created: Date.now(),
+                        data: [{b64_json}],
+                    })));
+                    controller.close();
                 });
             } else {
                 const filename = `${generateUUID()}.png`;
@@ -277,6 +286,69 @@ export function imageResponse(
                     }
                 });
             }
+        }
+    }), {
+        headers: {
+            ...COMMON_HEADER,
+            "Content-Type": "application/json;charset=UTF-8",
+        }
+    })
+}
+
+export function urlsToImageJson(urls: string[], format = 'url') {
+    if (format === 'b64_json') {
+        const arr = [];
+        return new Promise<{ created: number, data: { b64_json: string }[] }>((resolve) => {
+            const runTask = (index) => {
+                if (index === urls.length) {
+                    resolve({
+                        created: Date.now(),
+                        data: arr,
+                    });
+                    return;
+                }
+                fetch(urls[index]).then((res) => res.blob()).then((blob) => blobToBase64(blob)).then((b64_json) => {
+                    arr.push({b64_json});
+                    runTask(index + 1);
+                });
+            }
+            runTask(0);
+        });
+    }
+    return {
+        created: Date.now(),
+        data: urls.map((url) => ({url})),
+    }
+}
+
+export function longTaskResponse(
+    start: () => Promise<object>,
+    runner: (o: object) => Promise<{ result: ?object }>,
+    wait = 500,
+    timeout = 60000,
+) {
+    return new Response(new ReadableStream({
+        start(controller) {
+            const encoder = new TextEncoder();
+            const timestamp = Date.now();
+            const loop = (param) => {
+                runner(param).then((res) => {
+                    if (res.result) {
+                        controller.enqueue(encoder.encode(JSON.stringify(res.result)));
+                        controller.close()
+                    } else {
+                        if (Date.now() - timestamp > timeout) {
+                            controller.enqueue(encoder.encode(JSON.stringify({})));
+                            controller.close()
+                        } else {
+                            setTimeout(() => loop(param), wait);
+                        }
+                    }
+                });
+            }
+            start().then((param) => {
+                loop(param);
+            });
         }
     }), {
         headers: {

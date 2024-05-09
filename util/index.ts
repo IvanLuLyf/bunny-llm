@@ -323,7 +323,7 @@ export function urlsToImageJson(urls: string[], format = 'url') {
 
 export function longTaskResponse(
     start: () => Promise<object>,
-    runner: (o: object) => Promise<{ result: object }>,
+    runner: (o: object) => Promise<{ result: object, error: object }>,
     wait = 500,
     timeout = 60000,
 ) {
@@ -331,15 +331,19 @@ export function longTaskResponse(
         start(controller) {
             const encoder = new TextEncoder();
             const timestamp = Date.now();
+            const end = (data) => {
+                controller.enqueue(encoder.encode(JSON.stringify(data)));
+                controller.close()
+            };
             const loop = (param) => {
                 runner(param).then((res) => {
-                    if (res.result) {
-                        controller.enqueue(encoder.encode(JSON.stringify(res.result)));
-                        controller.close()
+                    if (res.error) {
+                        end(res.error);
+                    } else if (res.result) {
+                        end(res.result);
                     } else {
                         if (Date.now() - timestamp > timeout) {
-                            controller.enqueue(encoder.encode(JSON.stringify({})));
-                            controller.close()
+                            end({error: {message: "Timeout."}})
                         } else {
                             setTimeout(() => loop(param), wait);
                         }

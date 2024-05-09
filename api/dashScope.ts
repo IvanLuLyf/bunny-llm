@@ -90,11 +90,7 @@ export default async (req: Request) => {
                         n,
                     },
                 }),
-            }).then((res) => {
-                const taskInfo = res.json();
-                console.log("taskInfo", taskInfo);
-                return taskInfo;
-            }),
+            }).then((res) => res.json()),
             (param) => fetch(`${URLS.TASK}${param.output.task_id}`, {
                 method: "GET",
                 headers: {
@@ -102,8 +98,11 @@ export default async (req: Request) => {
                 }
             }).then((res) => res.json()).then((res) => {
                 console.log("taskStatus", res);
-                if (res?.output?.task_status === "SUCCEEDED") {
+                const task_status = res?.output?.task_status || 'PENDING';
+                if (task_status === "SUCCEEDED") {
                     return urlsToImageJson((res?.output?.results || []).map((x) => x.url), response_format);
+                } else if (task_status === "FAILED") {
+                    return {error: {message: res?.output?.message || ""}}
                 }
                 return {};
             }));

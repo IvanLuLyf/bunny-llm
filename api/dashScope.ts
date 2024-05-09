@@ -90,13 +90,18 @@ export default async (req: Request) => {
                         n,
                     },
                 }),
-            }).then((res) => res.json()),
+            }).then((res) => {
+                const taskInfo = res.json();
+                console.log("taskInfo", taskInfo);
+                return taskInfo;
+            }),
             (param) => fetch(`${URLS.TASK}${param.output.task_id}`, {
                 method: "GET",
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 }
             }).then((res) => res.json()).then((res) => {
+                console.log("taskStatus", res);
                 if (res?.output?.task_status === "SUCCEEDED") {
                     return urlsToImageJson((res?.output?.results || []).map((x) => x.url), response_format);
                 }

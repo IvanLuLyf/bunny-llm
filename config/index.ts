@@ -6,3 +6,7 @@ export const COMPAT_MAPPER = {
 }
 
 export const BUNNY_API_TOKEN = Deno.env.get("BUNNY_API_TOKEN");
+export const BUNNY_PATHS = {
+    CHAT: "/v1/chat/completions",
+    IMAGE: "/v1/images/generations",
+};

@@ -1,6 +1,7 @@
 import {Sha3_512} from "https://deno.land/std@0.119.0/hash/sha3.ts";
 import {encode} from "https://deno.land/std@0.136.0/encoding/base64.ts";
 import {defaultResponse, generateUUID, jsonResponse, makeReply, optionsResponse} from "../util/index.ts";
+import {BUNNY_PATHS} from "../config/index.ts";
 
 const BASE_URL = "https://chat.openai.com";
 const API_URL = `${BASE_URL}/backend-api/conversation`;
@@ -97,7 +98,7 @@ export default async (req: Request) => {
         return jsonResponse({
             token: encodeURIComponent(JSON.stringify({id: oaiDeviceId, token, seed, difficulty}))
         });
-    } else if (url.pathname === '/v1/chat/completions') {
+    } else if (url.pathname === BUNNY_PATHS.CHAT) {
         let oaiDeviceId = '', token = '', seed, difficulty, err = '';
         if (req.headers.has("Authorization")) {
             const tmp = req.headers.get("Authorization");

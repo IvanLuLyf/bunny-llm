@@ -1,4 +1,4 @@
-import {BUNNY_API_TOKEN} from "../config/index.ts";
+import {BUNNY_API_TOKEN, BUNNY_PATHS} from "../config/index.ts";
 import {
     defaultResponse,
     jsonResponse,
@@ -30,7 +30,7 @@ export default async (req: Request) => {
         return optionsResponse();
     }
     const url = new URL(req.url);
-    if (url.pathname.endsWith("/v1/chat/completions")) {
+    if (url.pathname.endsWith(BUNNY_PATHS.CHAT)) {
         if (!req.headers.has("Authorization")) {
             return jsonResponse({err: "Token is empty."});
         }
@@ -67,7 +67,7 @@ export default async (req: Request) => {
             const o = m?.output;
             return o?.choices?.[0]?.message?.content || o?.text || "";
         });
-    } else if (url.pathname.endsWith("/v1/images/generations")) {
+    } else if (url.pathname.endsWith(BUNNY_PATHS.IMAGE)) {
         if (!req.headers.has("Authorization")) {
             return jsonResponse({err: "Token is empty."});
         }

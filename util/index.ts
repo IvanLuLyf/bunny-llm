@@ -324,7 +324,7 @@ export function urlsToImageJson(urls: string[], format = 'url') {
 export function longTaskResponse(
     start: () => Promise<object>,
     runner: (o: object) => Promise<{ result: object, error: object }>,
-    wait = 500,
+    wait = 2000,
     timeout = 60000,
 ) {
     return new Response(new ReadableStream({
@@ -336,11 +336,17 @@ export function longTaskResponse(
                 controller.close()
             };
             const loop = (param) => {
-                runner(param).then((res) => {
-                    if (res.error) {
-                        end(res.error);
-                    } else if (res.result) {
-                        end(res.result);
+                runner(param).then((o) => {
+                    if (o.error) {
+                        end(o.error);
+                    } else if (o.result) {
+                        if (o.result.then) {
+                            o.result.then((data) => {
+                                end(data);
+                            });
+                        } else {
+                            end(o.result);
+                        }
                     } else {
                         if (Date.now() - timestamp > timeout) {
                             end({error: {message: "Timeout."}})

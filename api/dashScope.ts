@@ -97,10 +97,9 @@ export default async (req: Request) => {
                     'Authorization': `Bearer ${token}`,
                 }
             }).then((res) => res.json()).then((res) => {
-                console.log("taskStatus", res);
                 const task_status = res?.output?.task_status || 'PENDING';
                 if (task_status === "SUCCEEDED") {
-                    return urlsToImageJson((res?.output?.results || []).map((x) => x.url), response_format);
+                    return {result: urlsToImageJson((res?.output?.results || []).map((x) => x.url), response_format)};
                 } else if (task_status === "FAILED") {
                     return {error: {message: res?.output?.message || ""}}
                 }

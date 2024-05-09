@@ -14,6 +14,7 @@ const URLS = {
     IMAGE: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis",
     TASK: "https://dashscope.aliyuncs.com/api/v1/tasks/",
 }
+const IMAGE_SIZE = ["1024*1024", "720*1280", "1280*720"];
 
 function makeToken(auth): string {
     const token = auth.startsWith("Bearer ") ? auth.substring(7) : auth;
@@ -71,7 +72,11 @@ export default async (req: Request) => {
             return jsonResponse({err: "Token is empty."});
         }
         const token = makeToken(req.headers.get("Authorization"));
-        const {model, prompt, response_format, size, n} = await req.json();
+        const {model, prompt, response_format, size: tmpSize, n} = await req.json();
+        let size = (tmpSize || '1024*1024').replace('x', '*');
+        if (!IMAGE_SIZE.includes(size)) {
+            size = '1024*1024';
+        }
         return longTaskResponse(
             () => fetch(URLS.IMAGE, {
                 method: "POST",

@@ -323,7 +323,7 @@ export function urlsToImageJson(urls: string[], format = 'url') {
 
 export function longTaskResponse(
     start: () => Promise<object>,
-    runner: (o: object) => Promise<{ result: ?object }>,
+    runner: (o: object) => Promise<{ result: object }>,
     wait = 500,
     timeout = 60000,
 ) {

@@ -63,7 +63,7 @@ export default async (req: Request) => {
                     ...convertMessages(messages),
                     generationConfig: {max_tokens, top_k, temperature},
                 }),
-            }).then((res) => res.body.getReader());
+            }).then((res) => res.body.getReader()).catch((err) => console.log(err));
         }, (m) => {
             console.log(m);
             const c = m?.candidates[0];

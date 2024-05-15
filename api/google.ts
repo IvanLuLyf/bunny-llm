@@ -18,8 +18,8 @@ function makeToken(auth): string {
     }
 }
 
-function makeURL(model) {
-    return `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
+function makeURL(model, token) {
+    return `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${token}`;
 }
 
 function convertMessages(messages) {
@@ -50,13 +50,13 @@ export default async (req: Request) => {
         const token = makeToken(req.headers.get("Authorization"));
         const body = await req.json();
         const {model, messages, max_tokens, top_k, temperature, stream} = body;
+        console.log("BODY", body);
         return replyResponse(model, stream, () => {
-            return fetch(makeURL(model), {
+            console.log("START GEMINI");
+            return fetch(makeURL(model, token), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "x-goog-api-key": token,
-                    "x-goog-api-client": "genai-js/0.5.0",
                 },
                 body: JSON.stringify({
                     safetySettings,
@@ -66,8 +66,8 @@ export default async (req: Request) => {
             }).then((res) => res.body.getReader()).catch((err) => console.log(err));
         }, (m) => {
             console.log(m);
-            const c = m?.candidates[0];
-            return c.content?.parts[0].text;
+            const c = m?.candidates?.[0];
+            return c?.content?.parts?.[0]?.text || "";
         });
     }
 }

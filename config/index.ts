@@ -1,4 +1,4 @@
-export const COMPAT_MAPPER = {
+export const COMPAT_MAPPER: { [name: string]: { host: string, api_key: string, prefix?: string } } = {
     openai: {host: "api.openai.com", api_key: Deno.env.get("OPENAI_API_KEY")},
     kimi: {host: "api.moonshot.cn", api_key: Deno.env.get("MOONSHOT_API_KEY")},
     moonshot: {host: "api.moonshot.cn", api_key: Deno.env.get("MOONSHOT_API_KEY")},

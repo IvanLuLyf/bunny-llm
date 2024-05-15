@@ -62,7 +62,7 @@ export default async (req: Request) => {
                 body: JSON.stringify({
                     // safetySettings,
                     ...convertMessages(messages),
-                    // generationConfig: {max_tokens, top_k, temperature},
+                    generationConfig: {max_tokens, top_k, temperature},
                 }),
             }).then((res) => res.body.getReader()).catch((err) => console.log(err));
         }, (m) => {

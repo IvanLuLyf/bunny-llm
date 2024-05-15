@@ -35,6 +35,7 @@ function convertMessages(messages) {
             contents.push({role: m.role, parts});
         }
     }
+    console.log("CONTENTS", contents);
     return {contents, system_instruction};
 }
 
@@ -59,9 +60,9 @@ export default async (req: Request) => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    safetySettings,
+                    // safetySettings,
                     ...convertMessages(messages),
-                    generationConfig: {max_tokens, top_k, temperature},
+                    // generationConfig: {max_tokens, top_k, temperature},
                 }),
             }).then((res) => res.body.getReader()).catch((err) => console.log(err));
         }, (m) => {

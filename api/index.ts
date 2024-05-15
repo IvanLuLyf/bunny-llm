@@ -1,8 +1,9 @@
+import {BUNNY_API_TOKEN, COMPAT_MAPPER} from "../config/index.ts";
 import {optionsResponse} from "../util/index.ts";
 import free from "./freeGPT.ts";
 import cloudflare from "./cloudflare.ts";
 import dashScope from "./dashScope.ts";
-import {BUNNY_API_TOKEN, COMPAT_MAPPER} from "../config/index.ts";
+import google from "./google.ts";
 
 const RUNNERS = {
     free,
@@ -10,6 +11,8 @@ const RUNNERS = {
     cf: cloudflare,
     dash_scope: dashScope,
     ds: dashScope,
+    google: google,
+    gg: google,
 }
 export default async (req: Request) => {
     const method = req.method;

@@ -65,7 +65,18 @@ export default async (req: Request) => {
             body: JSON.stringify({
                 prompt,
             }),
-        }).then((res) => res.blob()));
+        }).then((res) => {
+            const type = res.headers.get("Content-Type") ?? "";
+            if (type.includes("application/json")) {
+                return new Promise((resolve) => {
+                    res.json().then((d) => {
+                        const bin = atob(d.result.image);
+                        resolve(new Blob([Uint8Array.from(bin, (m) => m.codePointAt(0))], {type: "image/png"}));
+                    });
+                });
+            }
+            return res.blob()
+        }));
     }
     return defaultResponse();
 }

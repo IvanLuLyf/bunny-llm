@@ -122,9 +122,10 @@
                         </select>
                     </label>
                     <label>
-                        <select name="model" class="input">
+                        <input name="model" class="input" list="model_list"/>
+                        <datalist id="model_list" class="input">
                             <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
-                        </select>
+                        </datalist>
                     </label>
                 </div>
             </div>
@@ -148,9 +149,15 @@
                 "cf:@cf/microsoft/phi-2",
                 "cf:@cf/qwen/qwen1.5-0.5b-chat",
                 "cf:@cf/qwen/qwen1.5-1.8b-chat",
+
+                "cf:@cf/meta/llama-3.2-3b-instruct",
                 "cf:@cf/meta/llama-3-8b-instruct",
                 "cf:@cf/meta/llama-2-7b-chat-fp16",
+                "cf:@cf/meta/llama-3.2-11b-vision-instruct",
+                "cf:@cf/meta/llama-3.1-8b-instruct",
+
                 "cf:@hf/google/gemma-7b-it",
+                "cf:@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
 
                 "ds:qwen-turbo",
                 "ds:qwen-plus",
@@ -158,9 +165,9 @@
                 "ds:llama3-8b-instruct",
                 "ds:llama3-70b-instruct",
 
-                "groq:gemma-7b-it",
-                "groq:llama3-8b-8192",
-                "groq:llama3-70b-8192",
+                "groq:gemma2-9b-it",
+                "groq:llama-3.1-8b-instant",
+                "groq:llama-3.3-70b-versatile",
                 "groq:mixtral-8x7b-32768",
             ],
             Image: [
@@ -171,6 +178,7 @@
         const BASE_URL = location.hostname === 'localhost' ? 'https://bunny-llm.deno.dev/v1/' : './v1/';
         let token = '';
         const form = document.getElementById('form_query');
+        const $modelOpt = document.getElementById('model_list');
         const btn = form.elements.btn;
         const areaResult = document.getElementById('result');
         const btnSet = document.getElementById('btn_set');
@@ -230,7 +238,7 @@
                 if (tt !== "bunny") {
                     models = models.filter((x) => x.startsWith(`${tt}:`));
                 }
-                el.model.innerHTML = `${models.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
+                $modelOpt.innerHTML = `${models.map((x) => `<option value="${x}">${x}</option>`).join('')}`;
             }
             if (token) {
                 el.token.value = token;

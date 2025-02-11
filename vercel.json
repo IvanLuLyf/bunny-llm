@@ -7,7 +7,7 @@
   "routes": [
     {
       "src": "/v1/(.*)",
-      "dest": "/api/freeGPT.ts"
+      "dest": "/api/index.ts"
     },
     {
       "src": "/free/v1/(.*)",

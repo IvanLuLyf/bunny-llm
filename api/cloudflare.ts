@@ -1,4 +1,4 @@
-import {BUNNY_API_TOKEN, BUNNY_PATHS} from "../config/index.ts";
+import {BUNNY_API_TOKENS, BUNNY_PATHS} from "../config/index.ts";
 import {
     defaultResponse,
     fakeToken,
@@ -13,7 +13,7 @@ const CF_API_TOKEN = Deno.env.get("CF_API_TOKEN");
 
 function makeToken(auth): { account: string, token: string } {
     const token = auth.startsWith("Bearer ") ? auth.substring(7) : auth;
-    if (token === BUNNY_API_TOKEN) {
+    if (BUNNY_API_TOKENS.includes(token)) {
         return {account: CF_ACCOUNT_ID, token: CF_API_TOKEN};
     } else {
         return fakeToken(auth);

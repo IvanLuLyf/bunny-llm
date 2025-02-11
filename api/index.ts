@@ -1,4 +1,4 @@
-import {BUNNY_API_TOKEN, COMPAT_MAPPER} from "../config/index.ts";
+import {BUNNY_API_TOKENS, COMPAT_MAPPER} from "../config/index.ts";
 import {optionsResponse} from "../util/index.ts";
 import free from "./freeGPT.ts";
 import cloudflare from "./cloudflare.ts";
@@ -40,7 +40,7 @@ export default async (req: Request) => {
         if (req.headers.has("Authorization") && config.api_key) {
             const auth = req.headers.get("Authorization");
             const token = auth.startsWith("Bearer ") ? auth.substring(7) : auth;
-            if (token === BUNNY_API_TOKEN) {
+            if (BUNNY_API_TOKENS.includes(token)) {
                 headers.set("Authorization", `Bearer ${config.api_key}`);
             }
         }

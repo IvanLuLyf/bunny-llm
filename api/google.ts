@@ -1,11 +1,11 @@
 import {jsonResponse, optionsResponse, replyResponse} from "../util/index.ts";
-import {BUNNY_API_TOKEN, BUNNY_PATHS} from "../config/index.ts";
+import {BUNNY_API_TOKENS, BUNNY_PATHS} from "../config/index.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
 function makeToken(auth): string {
     const token = auth.startsWith("Bearer ") ? auth.substring(7) : auth;
-    if (token === BUNNY_API_TOKEN) {
+    if (BUNNY_API_TOKENS.includes(token)) {
         return GEMINI_API_KEY;
     } else {
         return token;

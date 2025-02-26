@@ -12,6 +12,7 @@ const RUNNERS = {
     gg: google,
 }
 const created = Math.floor(Date.now() / 1000);
+const owner_by = "bunny";
 export default async (req: Request) => {
     const method = req.method;
     const pathUrl = new URL(req.url);
@@ -19,23 +20,12 @@ export default async (req: Request) => {
     if (pathUrl.pathname === "/v1/models") {
         return jsonResponse({
             object: "list",
-            data: BUNNY_MODELS.map((m) => {
-                const pos = m.indexOf(":");
-                let owner, id;
-                if (pos === -1) {
-                    owner = 'openai';
-                    id = m;
-                } else {
-                    owner = m.substring(0, pos).toLowerCase();
-                    id = m.substring(pos + 1);
-                }
-                return {
-                    id,
-                    object: "model",
-                    created,
-                    owner,
-                }
-            }),
+            data: BUNNY_MODELS.map((id) => ({
+                id,
+                object: "model",
+                created,
+                owner_by,
+            })),
         })
     }
     const {model: rawModel = '', ...rest} = await req.json();

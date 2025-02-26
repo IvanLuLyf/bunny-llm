@@ -105,7 +105,7 @@
                         <select name="token_type" class="input">
                             <option value="bunny" selected>Bunny</option>
                             <option value="openai">OpenAI</option>
-                            <option value="ds">DashScope</option>
+                            <option value="ali">AliCloud</option>
                             <option value="cf">CloudFlare</option>
                             <option value="groq">Groq</option>
                         </select>
@@ -125,7 +125,7 @@
                         <input name="model" class="input" list="model_list" autocomplete="off"
                                value="openai:gpt-3.5-turbo"/>
                         <datalist id="model_list" class="input">
-                            <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
+                            <option value="openai:gpt-3.5-turbo" selected>openai:gpt-3.5-turbo</option>
                         </datalist>
                     </label>
                 </div>
@@ -161,11 +161,11 @@
                 "cf:@hf/google/gemma-7b-it",
                 "cf:@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
 
-                "ds:qwen-turbo",
-                "ds:qwen-plus",
-                "ds:qwen-max",
-                "ds:llama3-8b-instruct",
-                "ds:llama3-70b-instruct",
+                "ali:qwen-turbo",
+                "ali:qwen-plus",
+                "ali:qwen-max",
+                "ali:llama3-8b-instruct",
+                "ali:llama3-70b-instruct",
 
                 "groq:gemma2-9b-it",
                 "groq:llama-3.1-8b-instant",

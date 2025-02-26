@@ -1,5 +1,5 @@
-import {BUNNY_API_TOKENS, COMPAT_MAPPER} from "../config/index.ts";
-import {optionsResponse} from "../util/index.ts";
+import {BUNNY_API_TOKENS, BUNNY_MODELS, COMPAT_MAPPER} from "../config/index.ts";
+import {jsonResponse, optionsResponse} from "../util/index.ts";
 import cloudflare from "./cloudflare.ts";
 import ali from "./ali.ts";
 import google from "./google.ts";
@@ -11,9 +11,33 @@ const RUNNERS = {
     google: google,
     gg: google,
 }
+const created = Math.floor(Date.now() / 1000);
 export default async (req: Request) => {
     const method = req.method;
+    const pathUrl = new URL(req.url);
     if (method === "OPTIONS") return optionsResponse();
+    if (pathUrl.pathname === "/v1/models") {
+        return jsonResponse({
+            object: "list",
+            data: BUNNY_MODELS.map((m) => {
+                const pos = m.indexOf(":");
+                let owner, id;
+                if (pos === -1) {
+                    owner = 'openai';
+                    id = m;
+                } else {
+                    owner = m.substring(0, pos).toLowerCase();
+                    id = m.substring(pos + 1);
+                }
+                return {
+                    id,
+                    object: "model",
+                    created,
+                    owner,
+                }
+            }),
+        })
+    }
     const {model: rawModel = '', ...rest} = await req.json();
     const pos = rawModel.indexOf(":");
     let mod, model;
@@ -32,7 +56,6 @@ export default async (req: Request) => {
     if (mod in COMPAT_MAPPER) {
         const config = COMPAT_MAPPER[mod];
         const url = new URL(config.base_url);
-        const pathUrl = new URL(req.url);
         url.pathname = (url.pathname + pathUrl.pathname.slice(3)).replace('//', '/');
         if (req.headers.has("Authorization") && config.api_key) {
             const auth = req.headers.get("Authorization");

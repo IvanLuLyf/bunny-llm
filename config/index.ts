@@ -16,8 +16,15 @@ export const COMPAT_MAPPER: { [name: string]: { base_url: string, api_key: strin
         api_key: Deno.env.get("GROQ_API_KEY"),
     },
 };
-
-export const BUNNY_PROVIDERS = JSON.parse(Deno.env.get("BUNNY_API_PROVIDER") || "[]");
+const BUNNY_PROVIDERS: {
+    api_key: string,
+    base_url: string,
+    name: string
+}[] = JSON.parse(Deno.env.get("BUNNY_PROVIDERS") || "[]");
+BUNNY_PROVIDERS.forEach(({name, base_url, api_key}) => {
+    COMPAT_MAPPER[name] = {base_url, api_key};
+});
+export const BUNNY_MODELS = (Deno.env.get("BUNNY_MODELS") || "").split(";").filter((x) => x);
 
 export const BUNNY_API_TOKENS = (Deno.env.get("BUNNY_API_TOKEN") || "").split(";").filter((x) => x);
 export const BUNNY_PATHS = {

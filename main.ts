@@ -17,7 +17,8 @@ Deno.serve(async (req: Request) => {
         return defaultResponse();
     } else if (mod in COMPAT_MAPPER) {
         const config = COMPAT_MAPPER[mod];
-        return createOpenAICompact(mod, config.base_url);
+        const runner = createOpenAICompact(mod, config.base_url);
+        return await runner(req);
     } else {
         const data = await Deno.readFile("./index.html");
         return htmlResponse(new TextDecoder().decode(data));

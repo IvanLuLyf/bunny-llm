@@ -8,26 +8,6 @@
     {
       "src": "/v1/(.*)",
       "dest": "/api/index.ts"
-    },
-    {
-      "src": "/free/v1/(.*)",
-      "dest": "/api/freeGPT.ts"
-    },
-    {
-      "src": "/openai/v1/(.*)",
-      "dest": "/api/openai.ts"
-    },
-    {
-      "src": "/cloudflare/v1/(.*)",
-      "dest": "/api/cloudflare.ts"
-    },
-    {
-      "src": "/kimi/v1/(.*)",
-      "dest": "/api/kimi.ts"
-    },
-    {
-      "src": "/groq/v1/(.*)",
-      "dest": "/api/groq.ts"
     }
   ],
   "github": {

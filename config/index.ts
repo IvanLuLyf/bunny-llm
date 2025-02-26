@@ -31,3 +31,5 @@ export const BUNNY_PATHS = {
     CHAT: "/v1/chat/completions",
     IMAGE: "/v1/images/generations",
 };
+
+export const BUNNY_VERSION = "20250226";

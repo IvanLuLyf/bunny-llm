@@ -1,5 +1,6 @@
-import {htmlResponse, optionsResponse, tempImgResponse} from "./util/index.ts";
+import {createOpenAICompact, defaultResponse, htmlResponse, optionsResponse, tempImgResponse} from "./util/index.ts";
 import index from "./api/index.ts"
+import {COMPAT_MAPPER} from "./config/index.ts";
 
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -12,6 +13,11 @@ Deno.serve(async (req: Request) => {
         return await index(req);
     } else if (mod === "image") {
         return await tempImgResponse(req);
+    } else if (mod === "version") {
+        return defaultResponse();
+    } else if (mod in COMPAT_MAPPER) {
+        const config = COMPAT_MAPPER[mod];
+        return createOpenAICompact(mod, config.base_url);
     } else {
         const data = await Deno.readFile("./index.html");
         return htmlResponse(new TextDecoder().decode(data));

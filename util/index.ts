@@ -1,3 +1,5 @@
+import {BUNNY_VERSION} from "../config/index.ts";
+
 const SUPPORT_CACHES = !!window.caches;
 const CACHE_IMAGE = "images";
 const COMMON_HEADER = {
@@ -88,7 +90,7 @@ export function notFoundResponse() {
 }
 
 export function defaultResponse() {
-    return jsonResponse({ver: "20240506", poweredBy: "BunnyLLM"});
+    return jsonResponse({ver: BUNNY_VERSION, poweredBy: "BunnyLLM"});
 }
 
 export function optionsResponse() {
@@ -368,19 +370,12 @@ export function longTaskResponse(
     })
 }
 
-export function createOpenAICompact(name = "openai", host = "api.openai.com", pathPrefix = "") {
+export function createOpenAICompact(name = "openai", base_url = "https://api.openai.com/v1") {
     return async (req: Request) => {
-        if (req.method === "OPTIONS") {
-            return optionsResponse();
-        }
-        const url = new URL(req.url);
-        url.host = host;
-        if (url.pathname.startsWith(`/${name}/`)) {
-            url.pathname = url.pathname.substring(name.length + 1);
-        }
-        if (pathPrefix) {
-            url.pathname = pathPrefix + url.pathname;
-        }
+        if (req.method === "OPTIONS") return optionsResponse();
+        const url = new URL(base_url);
+        const pathUrl = new URL(req.url);
+        url.pathname = (url.pathname + pathUrl.pathname.slice(name.length + 4)).replace('//', '/');
         return await fetch(new Request(url.toString(), {
             headers: req.headers,
             method: req.method,

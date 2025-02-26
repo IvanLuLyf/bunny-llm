@@ -30,14 +30,6 @@ res = client.chat.completions.create(
 print(res.choices[0].message.content)
 ```
 
-### Free ChatGPT 3.5
-
-`vendor` is `free`
-
-`api_key` is `EMPTY`
-
-`model` is `gpt-3.5-turbo` only
-
 ### CloudFlare Workers AI
 
 `vendor` is `cf` or `cloudflare`
@@ -67,12 +59,11 @@ api_key=urllib.parse.quote(json.dumps({
 
 ### DashScope
 
-`vendor` is `ds` or `dash_scope`
+`vendor` is `ali`
 
-`model` can refer to [Supported Models](https://help.aliyun.com/zh/dashscope/developer-reference/model-square/)
+`model` can refer to [Supported Models](https://help.aliyun.com/zh/model-studio/developer-reference/models/)
 
 `api_key` can set by `DASHSCOPE_API_KEY` or pass it directly [Get API KEY](https://dashscope.console.aliyun.com/apiKey)
-
 
 ### Groq
 
